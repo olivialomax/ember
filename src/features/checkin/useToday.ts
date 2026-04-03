@@ -42,6 +42,7 @@ export function useToday() {
     }) => upsertEntry(user!.id, today, payload.fields),
     onSuccess: (saved, variables) => {
       queryClient.setQueryData(['entry', user?.id, today], saved);
+      queryClient.invalidateQueries({ queryKey: ['recent-entries', user?.id] });
       if (variables.markSyncedOnSuccess) markSynced();
     },
   });
