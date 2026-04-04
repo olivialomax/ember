@@ -1,15 +1,16 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
-  Animated,
   TouchableOpacity,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { ScreenWrapper } from '../../shared/components/ScreenWrapper';
+import { FadeUpSection } from '../../shared/components/FadeUpSection';
 import { useGratitude } from '../gratitude';
 import { TodayCard } from '../checkin/TodayCard';
 import { StreakCard } from '../streaks/StreakCard';
@@ -33,48 +34,14 @@ function getFirstName(user: { display_name?: string | null; email?: string } | n
   return user.email?.split('@')[0] ?? 'there';
 }
 
-// ─── Animated section wrapper ────────────────────────────────────────────────
-
-function FadeUpSection({
-  children,
-  delay,
-}: {
-  children: React.ReactNode;
-  delay: number;
-}) {
-  const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(16)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 400,
-        delay,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateY, {
-        toValue: 0,
-        duration: 400,
-        delay,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
-
-  return (
-    <Animated.View style={{ opacity, transform: [{ translateY }] }}>
-      {children}
-    </Animated.View>
-  );
-}
-
 // ─── Main screen ─────────────────────────────────────────────────────────────
 
 type RootNavProp = NativeStackNavigationProp<{ CheckIn: undefined; Gratitude: undefined }>;
+type TabNavProp = BottomTabNavigationProp<{ Insights: undefined }>;
 
 export function HomeScreen() {
   const navigation = useNavigation<RootNavProp>();
+  const tabNavigation = useNavigation<TabNavProp>();
   const { user } = useAuthStore();
   const { streaks } = useStreaks();
   const { items: gratitudeItems, meetsMinimum: gratitudeMet } = useGratitude();
@@ -128,7 +95,7 @@ export function HomeScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Streaks</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => tabNavigation.navigate('Insights')}>
                 <Text style={styles.sectionLink}>View all</Text>
               </TouchableOpacity>
             </View>
