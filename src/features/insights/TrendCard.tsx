@@ -42,7 +42,6 @@ export function TrendCard({ tracker, series, avg }: TrendCardProps) {
             {displayAvg}
           </Text>
           <Text style={styles.label}>{meta.label}</Text>
-          <Text style={styles.avgLabel}>7-day avg</Text>
         </View>
 
         {/* Right: sparkline */}
@@ -93,14 +92,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.08 * 9,
     color: colors.stone,
     marginTop: 3,
-  },
-  avgLabel: {
-    fontFamily: typography.body,
-    fontSize: 9,
-    textTransform: 'uppercase',
-    letterSpacing: 0.08 * 9,
-    color: colors.stone,
-    marginTop: 2,
   },
   sparkCol: {
     flex: 1,

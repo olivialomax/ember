@@ -15,7 +15,7 @@ const TRACKERS: TrackerKey[] = ['mood', 'energy', 'stress', 'movement', 'drinks'
 
 export function InsightsScreen() {
   const { streaks } = useStreaks();
-  const { weekAvg, series, correlations, hasEnoughData } = useInsights();
+  const { weekAvg, avg14, series, correlations, hasEnoughData } = useInsights();
 
   const visibleCorrelations = correlations.filter((c) => c.visible);
 
@@ -70,13 +70,14 @@ export function InsightsScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>14-day trends</Text>
+              <Text style={styles.sectionSubtitle}>14-day average</Text>
             </View>
             {TRACKERS.map((key) => (
               <TrendCard
                 key={key}
                 tracker={key}
                 series={series[key]}
-                avg={weekAvg[key]}
+                avg={avg14[key]}
               />
             ))}
           </View>
@@ -147,6 +148,12 @@ const styles = StyleSheet.create({
     fontFamily: typography.display,
     fontSize: 17,
     color: colors.ink,
+  },
+  sectionSubtitle: {
+    fontFamily: typography.body,
+    fontSize: 11,
+    color: colors.stone,
+    marginTop: 2,
   },
   weekCard: {
     backgroundColor: colors.warmWhite,

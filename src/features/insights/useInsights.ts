@@ -15,6 +15,7 @@ export interface CorrelationInsight {
 
 export interface InsightsData {
   weekAvg: Record<TrackerKey, number | null>;
+  avg14: Record<TrackerKey, number | null>;
   series: Record<TrackerKey, (number | null)[]>; // 14 values, oldest first
   correlations: CorrelationInsight[];
   hasEnoughData: boolean;
@@ -65,6 +66,15 @@ function computeInsights(entries: Entry[]): InsightsData {
       .map((d) => byDate.get(d)?.[key] ?? null)
       .filter((v): v is number => v !== null);
     weekAvg[key] = mean(vals);
+  }
+
+  // 14-day averages
+  const avg14 = {} as Record<TrackerKey, number | null>;
+  for (const key of TRACKERS) {
+    const vals = dates14
+      .map((d) => byDate.get(d)?.[key] ?? null)
+      .filter((v): v is number => v !== null);
+    avg14[key] = mean(vals);
   }
 
   // 14-day series (oldest first, for sparkline left → right)
@@ -168,12 +178,15 @@ function computeInsights(entries: Entry[]): InsightsData {
     visible: bestDay >= 0,
   });
 
-  return { weekAvg, series, correlations, hasEnoughData };
+  return { weekAvg, avg14, series, correlations, hasEnoughData };
 }
 
 // ─── defaults ─────────────────────────────────────────────────────────────────
 
 const defaultWeekAvg: Record<TrackerKey, number | null> = {
+  mood: null, energy: null, stress: null, movement: null, drinks: null,
+};
+const defaultAvg14: Record<TrackerKey, number | null> = {
   mood: null, energy: null, stress: null, movement: null, drinks: null,
 };
 const defaultSeries: Record<TrackerKey, (number | null)[]> = {
@@ -193,7 +206,7 @@ export function useInsights() {
   });
 
   const result = useMemo<InsightsData>(
-    () => (entries ? computeInsights(entries) : { weekAvg: defaultWeekAvg, series: defaultSeries, correlations: [], hasEnoughData: false }),
+    () => (entries ? computeInsights(entries) : { weekAvg: defaultWeekAvg, avg14: defaultAvg14, series: defaultSeries, correlations: [], hasEnoughData: false }),
     [entries]
   );
 
