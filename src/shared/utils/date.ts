@@ -1,3 +1,12 @@
+/** Formats a YYYY-MM-DD date string as a long human-readable heading, e.g. "Saturday 4 April". */
+export function formatDateHeading(dateStr: string): string {
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+}
+
 /** Returns today's date in YYYY-MM-DD format using local time, not UTC. */
 export function localDateISO(): string {
   const d = new Date();

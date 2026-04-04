@@ -3,7 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../auth/useAuthStore';
 import { getRecentEntries } from '../../services/entries';
 import { getLifeEventsForMonth, addLifeEvent, deleteLifeEvent } from '../../services/lifeEvents';
-import { LifeEvent } from '../../types';
+import { getGratitudeItems } from '../../services/gratitude';
+import { LifeEvent, GratitudeItem } from '../../types';
 import { localDateISO } from '../../shared/utils/date';
 
 function toISO(year: number, month: number, day: number) {
@@ -57,10 +58,19 @@ export function useCalendar() {
     staleTime: 2 * 60 * 1000,
   });
 
+  const gratitudeQuery = useQuery({
+    queryKey: ['gratitude', user?.id, selectedDate],
+    queryFn: () => getGratitudeItems(user!.id, selectedDate),
+    enabled: !!user,
+    staleTime: 2 * 60 * 1000,
+  });
+
   const checkinDates = new Set((entriesQuery.data ?? []).map((e) => e.date));
   const allEvents = eventsQuery.data ?? [];
   const eventDates = new Set(allEvents.map((e) => e.date));
   const eventsForSelected = allEvents.filter((e) => e.date === selectedDate);
+  const entryForSelected = (entriesQuery.data ?? []).find((e) => e.date === selectedDate) ?? null;
+  const gratitudeForSelected = gratitudeQuery.data ?? [];
 
   const addMutation = useMutation({
     mutationFn: ({ title, note }: { title: string; note: string | null }) =>
@@ -86,7 +96,10 @@ export function useCalendar() {
     goToNextMonth,
     checkinDates,
     eventDates,
+    entryForSelected,
     eventsForSelected,
+    gratitudeForSelected,
+    isLoadingDayDetail: entriesQuery.isLoading || gratitudeQuery.isLoading,
     isLoadingEvents: eventsQuery.isLoading,
     addEvent: (title: string, note: string | null) => addMutation.mutate({ title, note }),
     deleteEvent: (id: string) => deleteMutation.mutate(id),

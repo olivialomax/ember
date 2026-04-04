@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet } from 'react-native';
 import { ScreenWrapper } from '../../shared/components/ScreenWrapper';
 import { FadeUpSection } from '../../shared/components/FadeUpSection';
 import { CalendarGrid } from './CalendarGrid';
-import { EventList } from './EventList';
+import { DayDetailPanel } from './DayDetailPanel';
 import { useCalendar } from './useCalendar';
 import { colors, spacing } from '../../tokens';
 
@@ -17,7 +17,10 @@ export function CalendarScreen() {
     goToNextMonth,
     checkinDates,
     eventDates,
+    entryForSelected,
     eventsForSelected,
+    gratitudeForSelected,
+    isLoadingDayDetail,
     addEvent,
     deleteEvent,
     isAdding,
@@ -47,12 +50,15 @@ export function CalendarScreen() {
         </FadeUpSection>
 
         <FadeUpSection delay={100}>
-          <View style={styles.section}>
-            <EventList
+          <View style={styles.detailSection}>
+            <DayDetailPanel
               selectedDate={selectedDate}
+              entry={entryForSelected}
               events={eventsForSelected}
-              onAdd={addEvent}
-              onDelete={deleteEvent}
+              gratitudeItems={gratitudeForSelected}
+              isLoading={isLoadingDayDetail}
+              onAddEvent={addEvent}
+              onDeleteEvent={deleteEvent}
               isAdding={isAdding}
             />
           </View>
@@ -81,5 +87,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.07,
     shadowRadius: 20,
     elevation: 4,
+  },
+  detailSection: {
+    marginHorizontal: spacing.xl,
+    marginBottom: spacing.xl,
   },
 });
