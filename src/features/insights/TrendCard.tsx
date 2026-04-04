@@ -25,21 +25,17 @@ export function TrendCard({ tracker, series, avg }: TrendCardProps) {
   const meta = TRACKER_META[tracker];
   const [sparkWidth, setSparkWidth] = useState(0);
 
-  const displayAvg =
-    avg !== null
-      ? meta.unit
-        ? `${avg} ${meta.unit}`
-        : String(avg)
-      : '—';
-
   return (
     <View style={styles.card}>
       <View style={styles.row}>
         {/* Left: avg value + tracker name (stacked) */}
         <View style={styles.leftCol}>
           <Text style={[styles.avgValue, { color: avg !== null ? meta.color : colors.stone }]}>
-            {displayAvg}
+            {avg !== null ? String(avg) : '—'}
           </Text>
+          {avg !== null && meta.unit && (
+            <Text style={styles.unit}>{meta.unit}</Text>
+          )}
           <Text style={styles.label}>{meta.label}</Text>
         </View>
 
@@ -79,6 +75,12 @@ const styles = StyleSheet.create({
     fontFamily: typography.displayMedium,
     fontSize: 26,
     lineHeight: 26,
+  },
+  unit: {
+    fontFamily: typography.body,
+    fontSize: 10,
+    color: colors.stone,
+    marginTop: 1,
   },
   label: {
     fontFamily: typography.body,
