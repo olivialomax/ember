@@ -21,7 +21,7 @@ interface MetricTileProps {
 
 export function MetricTile({ tracker, value }: MetricTileProps) {
   const meta = TRACKER_META[tracker];
-  const hasValue = value != null;
+  const hasValue = value != null && !(meta.unit === 'min' && value === 0);
 
   const displayValue = hasValue
     ? meta.unit

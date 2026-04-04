@@ -4,8 +4,8 @@ import { colors, radius, spacing, typography } from '../../tokens';
 
 interface StepperInputProps {
   label: string;
-  value: number;
-  onChange: (value: number) => void;
+  value: number | null;
+  onChange: (value: number | null) => void;
   min: number;
   max: number;
   step: number;
@@ -13,18 +13,20 @@ interface StepperInputProps {
 }
 
 export function StepperInput({ label, value, onChange, min, max, step, unit }: StepperInputProps) {
-  const atMin = value <= min;
-  const atMax = value >= max;
+  const resolved = value ?? min;
+  const atMin = value === null || value <= min;
+  const atMax = value !== null && value >= max;
 
   function decrement() {
-    if (!atMin) onChange(Math.max(min, value - step));
+    if (value !== null && value > min) onChange(Math.max(min, value - step));
+    else if (value !== null && value <= min) onChange(null);
   }
 
   function increment() {
-    if (!atMax) onChange(Math.min(max, value + step));
+    if (!atMax) onChange(Math.min(max, resolved + step));
   }
 
-  const displayValue = unit ? `${value} ${unit}` : String(value);
+  const displayValue = value === null ? '—' : unit ? `${value} ${unit}` : String(value);
 
   return (
     <View style={styles.container}>

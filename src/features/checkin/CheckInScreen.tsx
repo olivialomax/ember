@@ -25,8 +25,8 @@ export function CheckInScreen() {
   const [mood, setMood] = useState<number | null>(entry.mood ?? null);
   const [energy, setEnergy] = useState<number | null>(entry.energy ?? null);
   const [stress, setStress] = useState<number | null>(entry.stress ?? null);
-  const [movement, setMovement] = useState<number>(entry.movement ?? 0);
-  const [drinks, setDrinks] = useState<number>(entry.drinks ?? 0);
+  const [movement, setMovement] = useState<number | null>(entry.movement ?? null);
+  const [drinks, setDrinks] = useState<number | null>(entry.drinks ?? null);
 
   function handleSubmit() {
     submitAll({ mood, energy, stress, movement, drinks });
