@@ -11,6 +11,8 @@ import { CheckInScreen, CheckInSummaryScreen } from '../features/checkin';
 import { SettingsScreen } from '../features/settings';
 import { JournalScreen } from '../features/journal';
 import { GratitudeModal } from '../features/gratitude';
+import { InsightsScreen } from '../features/insights';
+import { CalendarScreen } from '../features/calendar';
 
 export type CheckInStackParamList = {
   CheckInForm: undefined;
@@ -27,10 +29,7 @@ const placeholder = (name: string) =>
       </View>
     );
   };
-// JournalScreen is imported above
-const InsightsScreen = placeholder('Insights');
-const StreaksScreen = placeholder('Streaks');
-// SettingsScreen is imported above
+// JournalScreen, InsightsScreen, CalendarScreen, SettingsScreen are all imported above
 
 // ─── Tab icons (text-based until icon library is added) ─────────────────────
 
@@ -90,7 +89,7 @@ function MainTabs() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Journal" component={JournalScreen} />
       <Tab.Screen name="Insights" component={InsightsScreen} />
-      <Tab.Screen name="Streaks" component={StreaksScreen} />
+      <Tab.Screen name="Calendar" component={CalendarScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
   );
@@ -120,7 +119,7 @@ const tabIcons = {
   Home: '⌂',
   Journal: '✎',
   Insights: '◈',
-  Streaks: '◉',
+  Calendar: '◻',
   Settings: '⚙',
 } as const;
 
