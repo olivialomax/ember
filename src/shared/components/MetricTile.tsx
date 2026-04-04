@@ -29,7 +29,7 @@ export function MetricTile({ tracker, value }: MetricTileProps) {
       : String(value)
     : '—';
 
-  const isScore = tracker === 'mood' || tracker === 'energy' || tracker === 'stress';
+  const isScore = tracker === 'mood' || tracker === 'energy' || tracker === 'stress' || tracker === 'drinks';
 
   return (
     <View style={styles.tile}>
