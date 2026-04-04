@@ -3,8 +3,9 @@ import { useAuthStore } from '../auth/useAuthStore';
 import { useEntryStore } from './useEntryStore';
 import { getEntry, upsertEntry } from '../../services/entries';
 import { Entry, TrackerKey } from '../../types';
+import { localDateISO } from '../../shared/utils/date';
 
-const todayStr = () => new Date().toISOString().split('T')[0];
+const todayStr = () => localDateISO();
 
 export function useToday() {
   const { user } = useAuthStore();

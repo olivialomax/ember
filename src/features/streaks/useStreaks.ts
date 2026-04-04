@@ -4,8 +4,9 @@ import { getRecentEntries } from '../../services/entries';
 import { getRecentGratitudeItems } from '../../services/gratitude';
 import { calculateStreaks, calculateGratitudeStreak } from '../../services/streaks';
 import { StreakData } from '../../types';
+import { localDateISO } from '../../shared/utils/date';
 
-const todayStr = () => new Date().toISOString().split('T')[0];
+const todayStr = () => localDateISO();
 
 const EMPTY: StreakData = {
   journal_streak: 0,

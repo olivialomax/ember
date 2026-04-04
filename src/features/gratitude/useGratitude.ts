@@ -5,8 +5,9 @@ import {
   addGratitudeItem,
   deleteGratitudeItem,
 } from '../../services/gratitude';
+import { localDateISO } from '../../shared/utils/date';
 
-const todayStr = () => new Date().toISOString().split('T')[0];
+const todayStr = () => localDateISO();
 
 const MAX_ITEMS = 5;
 const MIN_FOR_STREAK = 3;

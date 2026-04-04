@@ -4,8 +4,9 @@ import { useAuthStore } from '../auth/useAuthStore';
 import { useToday } from '../checkin/useToday';
 import { getRecentEntries } from '../../services/entries';
 import { Entry } from '../../types';
+import { localDateISO } from '../../shared/utils/date';
 
-const todayStr = () => new Date().toISOString().split('T')[0];
+const todayStr = () => localDateISO();
 
 export function useJournal() {
   const { user } = useAuthStore();

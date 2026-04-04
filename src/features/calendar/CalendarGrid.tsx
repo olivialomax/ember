@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors, spacing, typography } from '../../tokens';
 import { DayCell, GridDay } from './DayCell';
+import { localDateISO } from '../../shared/utils/date';
 
 interface CalendarGridProps {
   year: number;
@@ -19,7 +20,7 @@ function toISO(year: number, month: number, day: number) {
 }
 
 function buildGrid(year: number, month: number): GridDay[] {
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = localDateISO();
   const daysInMonth = new Date(year, month, 0).getDate();
   const firstDayRaw = new Date(year, month - 1, 1).getDay(); // 0=Sun
   const firstDayMon = (firstDayRaw + 6) % 7; // Mon=0 … Sun=6

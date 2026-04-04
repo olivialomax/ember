@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { Entry } from '../types';
+import { localDateISOMinus } from '../shared/utils/date';
 
 export async function getEntry(userId: string, date: string): Promise<Entry | null> {
   const { data, error } = await supabase
@@ -14,9 +15,7 @@ export async function getEntry(userId: string, date: string): Promise<Entry | nu
 }
 
 export async function getRecentEntries(userId: string, days: number = 30): Promise<Entry[]> {
-  const since = new Date();
-  since.setDate(since.getDate() - days);
-  const sinceStr = since.toISOString().split('T')[0];
+  const sinceStr = localDateISOMinus(days);
 
   const { data, error } = await supabase
     .from('entries')

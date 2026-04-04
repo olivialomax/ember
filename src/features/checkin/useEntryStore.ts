@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { createMMKV } from 'react-native-mmkv';
 import { TrackerKey } from '../../types';
+import { localDateISO } from '../../shared/utils/date';
 
 const mmkv = createMMKV({ id: 'entry-store' });
 
@@ -24,7 +25,7 @@ interface EntryStoreState {
   markSynced: () => void;
 }
 
-const today = () => new Date().toISOString().split('T')[0];
+const today = () => localDateISO();
 
 export const useEntryStore = create<EntryStoreState>()(
   persist(

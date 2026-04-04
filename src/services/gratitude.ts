@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { GratitudeItem } from '../types';
+import { localDateISOMinus } from '../shared/utils/date';
 
 export async function getGratitudeItems(userId: string, date: string): Promise<GratitudeItem[]> {
   const { data, error } = await supabase
@@ -17,9 +18,7 @@ export async function getRecentGratitudeItems(
   userId: string,
   days: number = 60
 ): Promise<GratitudeItem[]> {
-  const since = new Date();
-  since.setDate(since.getDate() - days);
-  const sinceStr = since.toISOString().split('T')[0];
+  const sinceStr = localDateISOMinus(days);
 
   const { data, error } = await supabase
     .from('gratitude_items')

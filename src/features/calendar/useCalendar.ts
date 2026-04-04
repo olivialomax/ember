@@ -4,12 +4,13 @@ import { useAuthStore } from '../auth/useAuthStore';
 import { getRecentEntries } from '../../services/entries';
 import { getLifeEventsForMonth, addLifeEvent, deleteLifeEvent } from '../../services/lifeEvents';
 import { LifeEvent } from '../../types';
+import { localDateISO } from '../../shared/utils/date';
 
 function toISO(year: number, month: number, day: number) {
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
-const todayISO = () => new Date().toISOString().split('T')[0];
+const todayISO = () => localDateISO();
 
 export function useCalendar() {
   const { user } = useAuthStore();

@@ -1,5 +1,9 @@
 import { Entry, GratitudeItem, StreakData } from '../types';
 
+function dateToISO(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 /**
  * Calculates streak lengths from a list of entries sorted newest-first.
  * A streak is the number of consecutive days (ending today or yesterday)
@@ -42,7 +46,7 @@ export function calculateGratitudeStreak(
   let allowedGap = true;
 
   while (true) {
-    const dateStr = cursor.toISOString().split('T')[0];
+    const dateStr = dateToISO(cursor);
     const count = countByDate.get(dateStr) ?? 0;
 
     if (count >= minPerDay) {
@@ -76,7 +80,7 @@ function countStreak(
   let allowedGap = true;
 
   while (true) {
-    const dateStr = cursor.toISOString().split('T')[0];
+    const dateStr = dateToISO(cursor);
     const entry = byDate.get(dateStr);
 
     if (entry && predicate(entry)) {
