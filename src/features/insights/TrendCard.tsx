@@ -6,13 +6,13 @@ import { Sparkline } from '../../shared/components/Sparkline';
 
 const TRACKER_META: Record<
   TrackerKey,
-  { label: string; unit?: string; color: string; icon: string }
+  { label: string; unit?: string; color: string }
 > = {
-  mood:     { label: 'Mood',     color: colors.sage,       icon: '◐' },
-  energy:   { label: 'Energy',   color: colors.energyGold, icon: '◑' },
-  stress:   { label: 'Stress',   color: colors.stressRed,  icon: '◒' },
-  movement: { label: 'Movement', color: colors.blueCalm,   icon: '◓', unit: 'min' },
-  drinks:   { label: 'Drinks',   color: colors.amber,      icon: '◔' },
+  mood:     { label: 'Mood',     color: colors.sage },
+  energy:   { label: 'Energy',   color: colors.energyGold },
+  stress:   { label: 'Stress',   color: colors.stressRed },
+  movement: { label: 'Movement', color: colors.blueCalm, unit: 'min' },
+  drinks:   { label: 'Drinks',   color: colors.amber },
 };
 
 interface TrendCardProps {
@@ -35,9 +35,8 @@ export function TrendCard({ tracker, series, avg }: TrendCardProps) {
   return (
     <View style={styles.card}>
       <View style={styles.row}>
-        {/* Left: icon + avg value + tracker name + label (stacked) */}
+        {/* Left: avg value + tracker name (stacked) */}
         <View style={styles.leftCol}>
-          <Text style={[styles.icon, { color: meta.color }]}>{meta.icon}</Text>
           <Text style={[styles.avgValue, { color: avg !== null ? meta.color : colors.stone }]}>
             {displayAvg}
           </Text>
@@ -76,14 +75,10 @@ const styles = StyleSheet.create({
     width: 68,
     alignItems: 'center',
   },
-  icon: {
-    fontSize: 16,
-    marginBottom: spacing.xs,
-  },
   avgValue: {
     fontFamily: typography.displayMedium,
-    fontSize: 22,
-    lineHeight: 22,
+    fontSize: 26,
+    lineHeight: 26,
   },
   label: {
     fontFamily: typography.body,
