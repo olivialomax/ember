@@ -116,11 +116,11 @@ export function AppNavigator({ isAuthenticated }: { isAuthenticated: boolean }) 
 // ─── Tab icon map ─────────────────────────────────────────────────────────────
 
 const tabIcons = {
-  Home: '⌂',
-  Journal: '✎',
-  Insights: '◈',
-  Calendar: '◻',
-  Settings: '⚙',
+  Home: '🤍',
+  Journal: '✏️',
+  Insights: '📃',
+  Calendar: '📅',
+  Settings: '⚙️',
 } as const;
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
@@ -131,6 +131,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     paddingTop: 12,
     paddingBottom: 24,
+    paddingHorizontal: 16,
     height: 76,
   },
   tabLabel: {
