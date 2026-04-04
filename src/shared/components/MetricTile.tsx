@@ -23,20 +23,20 @@ export function MetricTile({ tracker, value }: MetricTileProps) {
   const meta = TRACKER_META[tracker];
   const hasValue = value != null && !(meta.unit === 'min' && value === 0);
 
-  const displayValue = hasValue
-    ? meta.unit
-      ? `${value}${meta.unit}`
-      : String(value)
-    : '—';
+  const numericDisplay = hasValue ? String(value) : '—';
+  const showUnit = hasValue && !!meta.unit;
 
-  const isScore = tracker === 'mood' || tracker === 'energy' || tracker === 'stress' || tracker === 'drinks';
+  const isScore = tracker === 'mood' || tracker === 'energy' || tracker === 'stress' || tracker === 'drinks' || tracker === 'movement';
 
   return (
     <View style={styles.tile}>
       <Text style={[styles.icon, { color: meta.color }]}>{meta.icon}</Text>
       <Text style={[styles.value, isScore && styles.valueScore, { color: hasValue ? meta.color : colors.stone }]}>
-        {displayValue}
+        {numericDisplay}
       </Text>
+      {showUnit && (
+        <Text style={styles.unit}>{meta.unit}</Text>
+      )}
       <Text style={[styles.label, isScore && styles.labelScore]}>{meta.label}</Text>
     </View>
   );
@@ -63,6 +63,12 @@ const styles = StyleSheet.create({
   valueScore: {
     fontSize: 28,
     lineHeight: 28,
+  },
+  unit: {
+    fontFamily: typography.body,
+    fontSize: 10,
+    color: colors.stone,
+    marginTop: 2,
   },
   label: {
     fontFamily: typography.body,
