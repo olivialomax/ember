@@ -33,10 +33,8 @@ export function MetricTile({ tracker, value }: MetricTileProps) {
       <Text style={[styles.icon, { color: meta.color }]}>{meta.icon}</Text>
       <Text style={[styles.value, isScore && styles.valueScore, { color: hasValue ? meta.color : colors.stone }]}>
         {numericDisplay}
+        {showUnit && <Text style={styles.unitInline}> {meta.unit}</Text>}
       </Text>
-      {showUnit && (
-        <Text style={styles.unit}>{meta.unit}</Text>
-      )}
       <Text style={[styles.label, isScore && styles.labelScore]}>{meta.label}</Text>
     </View>
   );
@@ -64,11 +62,10 @@ const styles = StyleSheet.create({
     fontSize: 28,
     lineHeight: 28,
   },
-  unit: {
+  unitInline: {
     fontFamily: typography.body,
-    fontSize: 10,
+    fontSize: 11,
     color: colors.stone,
-    marginTop: 2,
   },
   label: {
     fontFamily: typography.body,
