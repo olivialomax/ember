@@ -29,13 +29,15 @@ export function MetricTile({ tracker, value }: MetricTileProps) {
       : String(value)
     : '—';
 
+  const isScore = tracker === 'mood' || tracker === 'energy' || tracker === 'stress';
+
   return (
     <View style={styles.tile}>
       <Text style={[styles.icon, { color: meta.color }]}>{meta.icon}</Text>
-      <Text style={[styles.value, { color: hasValue ? meta.color : colors.stone }]}>
+      <Text style={[styles.value, isScore && styles.valueScore, { color: hasValue ? meta.color : colors.stone }]}>
         {displayValue}
       </Text>
-      <Text style={styles.label}>{meta.label}</Text>
+      <Text style={[styles.label, isScore && styles.labelScore]}>{meta.label}</Text>
     </View>
   );
 }
@@ -58,6 +60,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 20,
   },
+  valueScore: {
+    fontSize: 28,
+    lineHeight: 28,
+  },
   label: {
     fontFamily: typography.body,
     fontSize: 9,
@@ -65,5 +71,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.08 * 9,
     color: colors.stone,
     marginTop: 3,
+  },
+  labelScore: {
+    marginTop: 8,
   },
 });
