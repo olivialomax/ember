@@ -16,12 +16,7 @@ export function calculateStreaks(entries: Entry[], today: string): StreakData {
     mindful_streak: countStreak(
       entries,
       today,
-      (e) =>
-        e.mood !== null &&
-        e.energy !== null &&
-        e.stress !== null &&
-        e.movement !== null &&
-        e.drinks !== null
+      (e) => e.mood !== null && e.energy !== null && e.stress !== null
     ),
   };
 }
