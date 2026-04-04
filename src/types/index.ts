@@ -47,3 +47,12 @@ export interface WeeklyInsight {
 }
 
 export type TrackerKey = 'mood' | 'energy' | 'stress' | 'movement' | 'drinks';
+
+export interface LifeEvent {
+  id: string;
+  user_id: string;
+  date: string; // ISO date string e.g. "2026-04-03"
+  title: string;
+  note: string | null;
+  created_at: string;
+}
