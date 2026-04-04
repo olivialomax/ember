@@ -35,13 +35,17 @@ export function TrendCard({ tracker, series, avg }: TrendCardProps) {
   return (
     <View style={styles.card}>
       <View style={styles.row}>
-        {/* Left: icon + label */}
-        <View style={styles.labelCol}>
+        {/* Left: icon + avg value + tracker name + label (stacked) */}
+        <View style={styles.leftCol}>
           <Text style={[styles.icon, { color: meta.color }]}>{meta.icon}</Text>
+          <Text style={[styles.avgValue, { color: avg !== null ? meta.color : colors.stone }]}>
+            {displayAvg}
+          </Text>
           <Text style={styles.label}>{meta.label}</Text>
+          <Text style={styles.avgLabel}>7-day avg</Text>
         </View>
 
-        {/* Centre: sparkline */}
+        {/* Right: sparkline */}
         <View
           style={styles.sparkCol}
           onLayout={(e) => setSparkWidth(e.nativeEvent.layout.width)}
@@ -49,14 +53,6 @@ export function TrendCard({ tracker, series, avg }: TrendCardProps) {
           {sparkWidth > 0 && (
             <Sparkline data={series} color={meta.color} width={sparkWidth} height={40} />
           )}
-        </View>
-
-        {/* Right: 7-day avg */}
-        <View style={styles.valueCol}>
-          <Text style={[styles.avgValue, { color: avg !== null ? meta.color : colors.stone }]}>
-            {displayAvg}
-          </Text>
-          <Text style={styles.avgLabel}>7-day avg</Text>
         </View>
       </View>
     </View>
@@ -77,13 +73,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
   },
-  labelCol: {
-    width: 58,
+  leftCol: {
+    width: 68,
     alignItems: 'center',
-    gap: spacing.xs,
   },
   icon: {
     fontSize: 16,
+    marginBottom: spacing.xs,
+  },
+  avgValue: {
+    fontFamily: typography.displayMedium,
+    fontSize: 22,
+    lineHeight: 22,
   },
   label: {
     fontFamily: typography.body,
@@ -91,18 +92,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.08 * 9,
     color: colors.stone,
-  },
-  sparkCol: {
-    flex: 1,
-  },
-  valueCol: {
-    width: 52,
-    alignItems: 'flex-end',
-  },
-  avgValue: {
-    fontFamily: typography.displayMedium,
-    fontSize: 22,
-    lineHeight: 22,
+    marginTop: 3,
   },
   avgLabel: {
     fontFamily: typography.body,
@@ -110,6 +100,9 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.08 * 9,
     color: colors.stone,
-    marginTop: 3,
+    marginTop: 2,
+  },
+  sparkCol: {
+    flex: 1,
   },
 });
