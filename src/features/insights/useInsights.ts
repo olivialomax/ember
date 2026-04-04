@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../auth/useAuthStore';
 import { getRecentEntries } from '../../services/entries';
-import { Entry, TrackerKey } from '../../types';
+import { getRecentGratitudeItems } from '../../services/gratitude';
+import { Entry, GratitudeItem, TrackerKey } from '../../types';
 import { colors } from '../../tokens';
 
 export interface CorrelationInsight {
@@ -11,6 +12,12 @@ export interface CorrelationInsight {
   body: string;
   accent: string;
   visible: boolean;
+  comparison?: {
+    valueA: string;
+    labelA: string;
+    valueB: string;
+    labelB: string;
+  };
 }
 
 export interface InsightsData {
@@ -19,6 +26,7 @@ export interface InsightsData {
   series: Record<TrackerKey, (number | null)[]>; // 14 values, oldest first
   correlations: CorrelationInsight[];
   hasEnoughData: boolean;
+  daysLogged: number;
 }
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -50,7 +58,7 @@ function dateRange(days: number): string[] {
 const TRACKERS: TrackerKey[] = ['mood', 'energy', 'stress', 'movement', 'drinks'];
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-function computeInsights(entries: Entry[]): InsightsData {
+function computeInsights(entries: Entry[], gratitudeItems: GratitudeItem[]): InsightsData {
   const today = fmtDate(new Date());
   const byDate = new Map(entries.map((e) => [e.date, e]));
 
@@ -83,44 +91,63 @@ function computeInsights(entries: Entry[]): InsightsData {
     series[key] = dates14.map((d) => byDate.get(d)?.[key] ?? null);
   }
 
-  // Enough data gate: ≥5 entries in the last 30 days with at least a mood or energy value
-  const hasEnoughData =
-    recent30.filter((e) => e.mood !== null || e.energy !== null).length >= 5;
+  // Data gate: ≥5 entries in the last 30 days with at least a mood or energy value
+  const daysLogged = recent30.filter((e) => e.mood !== null || e.energy !== null).length;
+  const hasEnoughData = daysLogged >= 5;
 
   // ── Correlations ────────────────────────────────────────────────────────────
 
   const correlations: CorrelationInsight[] = [];
 
-  // 1. Movement + Mood
+  // Overall mood average across recent30 (used by Best Day comparison)
+  const overallMoodVals = recent30.filter((e) => e.mood !== null).map((e) => e.mood!);
+  const overallMoodAvg = mean(overallMoodVals) ?? 0;
+
+  // 1. Movement & Mood
   const withMov = recent30.filter((e) => (e.movement ?? 0) > 0 && e.mood !== null);
   const noMov = recent30.filter((e) => (e.movement ?? 0) === 0 && e.mood !== null);
   const movMoodAvg = mean(withMov.map((e) => e.mood!));
   const noMovMoodAvg = mean(noMov.map((e) => e.mood!));
+  let movMoodBody = '';
+  if (movMoodAvg !== null && noMovMoodAvg !== null) {
+    const diff = movMoodAvg - noMovMoodAvg;
+    if (diff > 0.5) movMoodBody = 'Moving makes a real difference for you. Your mood is meaningfully higher on active days.';
+    else if (diff > 0.1) movMoodBody = 'You tend to feel a little better on days you move.';
+    else if (diff >= -0.1) movMoodBody = 'Your mood stays fairly consistent whether you move or not.';
+    else movMoodBody = 'Interestingly, your mood runs a little lower on active days — rest might suit you.';
+  }
   correlations.push({
     id: 'movement-mood',
     title: 'Movement & Mood',
-    body:
-      movMoodAvg !== null && noMovMoodAvg !== null
-        ? `Days you move, your mood averages ${movMoodAvg}/5 — vs ${noMovMoodAvg}/5 on rest days.`
-        : '',
+    body: movMoodBody,
     accent: colors.blueCalm,
     visible: withMov.length >= 3 && noMov.length >= 3,
+    comparison: movMoodAvg !== null && noMovMoodAvg !== null
+      ? { valueA: movMoodAvg.toFixed(1), labelA: 'active days', valueB: noMovMoodAvg.toFixed(1), labelB: 'rest days' }
+      : undefined,
   });
 
-  // 2. Stress + Drinks
+  // 2. Stress & Drinks
   const hiStress = recent30.filter((e) => (e.stress ?? 0) >= 4 && e.drinks !== null);
   const loStress = recent30.filter((e) => (e.stress ?? 6) <= 2 && e.drinks !== null);
   const hiDrinks = mean(hiStress.map((e) => e.drinks!));
   const loDrinks = mean(loStress.map((e) => e.drinks!));
+  let stressDrinksBody = '';
+  if (hiDrinks !== null && loDrinks !== null) {
+    const diff = hiDrinks - loDrinks;
+    if (diff > 0.8) stressDrinksBody = 'High-stress days seem to come with noticeably more drinks. Worth keeping an eye on.';
+    else if (diff > 0.3) stressDrinksBody = 'You tend to reach for a little more on stressful days.';
+    else stressDrinksBody = 'Your drinking stays pretty steady regardless of stress levels.';
+  }
   correlations.push({
     id: 'stress-drinks',
     title: 'Stress & Drinks',
-    body:
-      hiDrinks !== null && loDrinks !== null
-        ? `On high-stress days you average ${hiDrinks} drinks — vs ${loDrinks} on calmer days.`
-        : '',
+    body: stressDrinksBody,
     accent: colors.stressRed,
     visible: hiStress.length >= 3 && loStress.length >= 3,
+    comparison: hiDrinks !== null && loDrinks !== null
+      ? { valueA: hiDrinks.toFixed(1), labelA: 'high-stress', valueB: loDrinks.toFixed(1), labelB: 'calm days' }
+      : undefined,
   });
 
   // 3. Week over week mood
@@ -139,10 +166,10 @@ function computeInsights(entries: Entry[]): InsightsData {
   const lastWeekMood = mean(lastWeek.map((e) => e.mood!));
 
   let wowBody = '';
-  if (thisWeekMood !== null && lastWeekMood !== null && lastWeekMood > 0) {
-    const pct = Math.abs(Math.round(((thisWeekMood - lastWeekMood) / lastWeekMood) * 100));
-    const dir = thisWeekMood >= lastWeekMood ? 'up' : 'down';
-    wowBody = `Your mood this week is trending ${dir} ${pct}% from last week.`;
+  if (thisWeekMood !== null && lastWeekMood !== null) {
+    if (thisWeekMood >= lastWeekMood + 0.1) wowBody = 'Your mood is on an upswing this week — keep it going.';
+    else if (thisWeekMood <= lastWeekMood - 0.1) wowBody = 'Your mood has dipped slightly this week. That\'s okay — patterns shift.';
+    else wowBody = 'Your mood has held steady week on week.';
   }
   correlations.push({
     id: 'wow-mood',
@@ -150,23 +177,25 @@ function computeInsights(entries: Entry[]): InsightsData {
     body: wowBody,
     accent: colors.sage,
     visible: thisWeek.length >= 2 && lastWeek.length >= 2,
+    comparison: thisWeekMood !== null && lastWeekMood !== null
+      ? { valueA: thisWeekMood.toFixed(1), labelA: 'this week', valueB: lastWeekMood.toFixed(1), labelB: 'last week' }
+      : undefined,
   });
 
-  // 4. Best day of week
+  // 4. Best day of week (mood)
   const moodByDay: number[][] = [[], [], [], [], [], [], []];
   for (const e of recent30) {
     if (e.mood == null) continue;
-    // Use noon local time to avoid DST edge cases when parsing date-only strings
     const d = new Date(`${e.date}T12:00:00`);
     moodByDay[d.getDay()].push(e.mood);
   }
 
   let bestDay = -1;
-  let bestAvg = -1;
+  let bestDayAvg = -1;
   for (let i = 0; i < 7; i++) {
     if (moodByDay[i].length >= 2) {
       const a = mean(moodByDay[i])!;
-      if (a > bestAvg) { bestAvg = a; bestDay = i; }
+      if (a > bestDayAvg) { bestDayAvg = a; bestDay = i; }
     }
   }
 
@@ -176,9 +205,125 @@ function computeInsights(entries: Entry[]): InsightsData {
     body: bestDay >= 0 ? `Your ${DAYS[bestDay]}s tend to be your brightest days.` : '',
     accent: colors.energyGold,
     visible: bestDay >= 0,
+    comparison: bestDay >= 0
+      ? { valueA: bestDayAvg.toFixed(1), labelA: DAYS[bestDay] + 's', valueB: overallMoodAvg.toFixed(1), labelB: 'your average' }
+      : undefined,
   });
 
-  return { weekAvg, avg14, series, correlations, hasEnoughData };
+  // 5. Gratitude & Mood
+  const gratCountByDate = new Map<string, number>();
+  for (const g of gratitudeItems) {
+    gratCountByDate.set(g.date, (gratCountByDate.get(g.date) ?? 0) + 1);
+  }
+  const withGrat = recent30.filter((e) => (gratCountByDate.get(e.date) ?? 0) >= 3 && e.mood !== null);
+  const noGrat = recent30.filter((e) => (gratCountByDate.get(e.date) ?? 0) < 3 && e.mood !== null);
+  const gratMoodAvg = mean(withGrat.map((e) => e.mood!));
+  const noGratMoodAvg = mean(noGrat.map((e) => e.mood!));
+  let gratBody = '';
+  if (gratMoodAvg !== null && noGratMoodAvg !== null) {
+    const diff = gratMoodAvg - noGratMoodAvg;
+    if (diff > 0.3) gratBody = 'Gratitude practice seems to lift your mood. Your scores are higher on days you reflect.';
+    else if (diff > 0) gratBody = 'There\'s a slight mood lift on your gratitude days.';
+    else gratBody = 'Your mood stays consistent regardless of gratitude practice — still a good habit.';
+  }
+  correlations.push({
+    id: 'gratitude-mood',
+    title: 'Gratitude & Mood',
+    body: gratBody,
+    accent: colors.sage,
+    visible: withGrat.length >= 3 && noGrat.length >= 3,
+    comparison: gratMoodAvg !== null && noGratMoodAvg !== null
+      ? { valueA: gratMoodAvg.toFixed(1), labelA: 'gratitude days', valueB: noGratMoodAvg.toFixed(1), labelB: 'other days' }
+      : undefined,
+  });
+
+  // 6. Stress & Movement
+  const movStress = recent30.filter((e) => (e.movement ?? 0) > 0 && e.stress !== null);
+  const noMovStress = recent30.filter((e) => (e.movement ?? 0) === 0 && e.stress !== null);
+  const movStressAvg = mean(movStress.map((e) => e.stress!));
+  const noMovStressAvg = mean(noMovStress.map((e) => e.stress!));
+  let stressMovBody = '';
+  if (movStressAvg !== null && noMovStressAvg !== null) {
+    const diff = noMovStressAvg - movStressAvg;
+    if (diff > 0.3) stressMovBody = 'Moving seems to take the edge off. Your stress is lower on active days.';
+    else if (diff > 0) stressMovBody = 'A little less stress on days you move.';
+    else stressMovBody = 'Your stress levels stay fairly steady whether you move or not.';
+  }
+  correlations.push({
+    id: 'stress-movement',
+    title: 'Stress & Movement',
+    body: stressMovBody,
+    accent: colors.stressRed,
+    visible: movStress.length >= 3 && noMovStress.length >= 3,
+    comparison: movStressAvg !== null && noMovStressAvg !== null
+      ? { valueA: movStressAvg.toFixed(1), labelA: 'active days', valueB: noMovStressAvg.toFixed(1), labelB: 'rest days' }
+      : undefined,
+  });
+
+  // 7. Energy by day of week
+  const energyByDay: number[][] = [[], [], [], [], [], [], []];
+  for (const e of recent30) {
+    if (e.energy == null) continue;
+    const d = new Date(`${e.date}T12:00:00`);
+    energyByDay[d.getDay()].push(e.energy);
+  }
+
+  let bestEnergyDay = -1;
+  let bestEnergyAvg = -1;
+  for (let i = 0; i < 7; i++) {
+    if (energyByDay[i].length >= 2) {
+      const a = mean(energyByDay[i])!;
+      if (a > bestEnergyAvg) { bestEnergyAvg = a; bestEnergyDay = i; }
+    }
+  }
+
+  const overallEnergyVals = recent30.filter((e) => e.energy !== null).map((e) => e.energy!);
+  const overallEnergyAvg = mean(overallEnergyVals) ?? 0;
+
+  correlations.push({
+    id: 'energy-day',
+    title: 'Your Energy Peak',
+    body: bestEnergyDay >= 0 ? `Your ${DAYS[bestEnergyDay]}s tend to be when your energy peaks.` : '',
+    accent: colors.energyGold,
+    visible: bestEnergyDay >= 0,
+    comparison: bestEnergyDay >= 0
+      ? { valueA: bestEnergyAvg.toFixed(1), labelA: DAYS[bestEnergyDay] + 's', valueB: overallEnergyAvg.toFixed(1), labelB: 'your average' }
+      : undefined,
+  });
+
+  // 8. Drinks & next-day energy
+  const highDrinkNextEnergy: number[] = [];
+  const lowDrinkNextEnergy: number[] = [];
+  for (const e of recent30) {
+    if (e.drinks === null) continue;
+    const d = new Date(`${e.date}T12:00:00`);
+    d.setDate(d.getDate() + 1);
+    const next = byDate.get(fmtDate(d));
+    if (!next || next.energy === null) continue;
+    if (e.drinks >= 2) highDrinkNextEnergy.push(next.energy);
+    else lowDrinkNextEnergy.push(next.energy);
+  }
+  const highDrinkEnergyAvg = mean(highDrinkNextEnergy);
+  const lowDrinkEnergyAvg = mean(lowDrinkNextEnergy);
+  let drinksEnergyBody = '';
+  if (highDrinkEnergyAvg !== null && lowDrinkEnergyAvg !== null) {
+    const diff = lowDrinkEnergyAvg - highDrinkEnergyAvg;
+    if (diff > 0.3) drinksEnergyBody = 'Your energy takes a hit the day after more drinks. Lighter nights seem to help.';
+    else if (diff > 0) drinksEnergyBody = 'A slight energy dip the day after heavier drinking.';
+    else drinksEnergyBody = 'Your next-day energy stays consistent regardless of how much you drink.';
+  }
+  correlations.push({
+    id: 'drinks-energy',
+    title: 'Drinks & Next-Day Energy',
+    body: drinksEnergyBody,
+    accent: colors.amber,
+    visible: highDrinkNextEnergy.length >= 3 && lowDrinkNextEnergy.length >= 3,
+    comparison: highDrinkEnergyAvg !== null && lowDrinkEnergyAvg !== null
+      ? { valueA: lowDrinkEnergyAvg.toFixed(1), labelA: 'lighter nights', valueB: highDrinkEnergyAvg.toFixed(1), labelB: 'heavier nights' }
+      : undefined,
+  });
+
+  return { weekAvg, avg14, series, correlations, hasEnoughData, daysLogged };
 }
 
 // ─── defaults ─────────────────────────────────────────────────────────────────
@@ -205,9 +350,19 @@ export function useInsights() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: gratitudeItems } = useQuery({
+    queryKey: ['gratitude-history', user?.id],
+    queryFn: () => getRecentGratitudeItems(user!.id, 60),
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const result = useMemo<InsightsData>(
-    () => (entries ? computeInsights(entries) : { weekAvg: defaultWeekAvg, avg14: defaultAvg14, series: defaultSeries, correlations: [], hasEnoughData: false }),
-    [entries]
+    () =>
+      entries
+        ? computeInsights(entries, gratitudeItems ?? [])
+        : { weekAvg: defaultWeekAvg, avg14: defaultAvg14, series: defaultSeries, correlations: [], hasEnoughData: false, daysLogged: 0 },
+    [entries, gratitudeItems]
   );
 
   return { ...result, isLoading };

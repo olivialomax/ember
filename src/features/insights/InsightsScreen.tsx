@@ -15,7 +15,7 @@ const TRACKERS: TrackerKey[] = ['mood', 'energy', 'stress', 'movement', 'drinks'
 
 export function InsightsScreen() {
   const { streaks } = useStreaks();
-  const { weekAvg, avg14, series, correlations, hasEnoughData } = useInsights();
+  const { weekAvg, avg14, series, correlations, hasEnoughData, daysLogged } = useInsights();
 
   const visibleCorrelations = correlations.filter((c) => c.visible);
 
@@ -95,8 +95,9 @@ export function InsightsScreen() {
               ))
             ) : (
               <View style={styles.patternsPlaceholder}>
+                <Text style={styles.patternsCount}>{daysLogged} / 5 days logged</Text>
                 <Text style={styles.patternsText}>
-                  Keep logging — your patterns will emerge here.
+                  Keep going — your patterns will start to emerge once you've checked in a few more times.
                 </Text>
               </View>
             )}
@@ -179,6 +180,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     ...shadows.subtle,
+  },
+  patternsCount: {
+    fontFamily: typography.display,
+    fontSize: 20,
+    color: colors.ink,
+    marginBottom: spacing.sm,
   },
   patternsText: {
     fontFamily: typography.displayItalic,
