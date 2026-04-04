@@ -2,12 +2,22 @@ import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { ScreenWrapper } from '../../shared/components/ScreenWrapper';
 import { FadeUpSection } from '../../shared/components/FadeUpSection';
+import { MetricTile } from '../../shared/components/MetricTile';
 import { StreakCard } from '../streaks/StreakCard';
 import { useStreaks } from '../streaks/useStreaks';
+import { useInsights } from './useInsights';
+import { TrendCard } from './TrendCard';
+import { CorrelationCard } from './CorrelationCard';
 import { colors, radius, shadows, spacing, typography } from '../../tokens';
+import { TrackerKey } from '../../types';
+
+const TRACKERS: TrackerKey[] = ['mood', 'energy', 'stress', 'movement', 'drinks'];
 
 export function InsightsScreen() {
   const { streaks } = useStreaks();
+  const { weekAvg, series, correlations, hasEnoughData } = useInsights();
+
+  const visibleCorrelations = correlations.filter((c) => c.visible);
 
   return (
     <ScreenWrapper>
@@ -25,31 +35,70 @@ export function InsightsScreen() {
           </Text>
         </View>
 
-        {/* Streaks */}
+        {/* This Week */}
         <FadeUpSection delay={0}>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>This week</Text>
+            </View>
+            <View style={styles.weekCard}>
+              <View style={styles.tilesRow}>
+                {TRACKERS.map((key) => (
+                  <MetricTile key={key} tracker={key} value={weekAvg[key]} />
+                ))}
+              </View>
+            </View>
+          </View>
+        </FadeUpSection>
+
+        {/* Streaks */}
+        <FadeUpSection delay={100}>
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Streaks</Text>
             </View>
             <View style={styles.streaksRow}>
-              <StreakCard label="Mindful" count={streaks.mindful_streak} accentColor={colors.sage} />
-              <StreakCard label="Journal" count={streaks.journal_streak} accentColor={colors.energyGold} />
+              <StreakCard label="Mindful"   count={streaks.mindful_streak}   accentColor={colors.sage} />
+              <StreakCard label="Journal"   count={streaks.journal_streak}   accentColor={colors.energyGold} />
               <StreakCard label="Gratitude" count={streaks.gratitude_streak} accentColor={colors.amber} />
             </View>
           </View>
         </FadeUpSection>
 
-        {/* Patterns placeholder */}
-        <FadeUpSection delay={100}>
+        {/* Trends */}
+        <FadeUpSection delay={200}>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>14-day trends</Text>
+            </View>
+            {TRACKERS.map((key) => (
+              <TrendCard
+                key={key}
+                tracker={key}
+                series={series[key]}
+                avg={weekAvg[key]}
+              />
+            ))}
+          </View>
+        </FadeUpSection>
+
+        {/* Patterns */}
+        <FadeUpSection delay={300}>
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Your patterns</Text>
             </View>
-            <View style={styles.patternsCard}>
-              <Text style={styles.patternsText}>
-                Keep logging — your patterns will emerge here.
-              </Text>
-            </View>
+            {hasEnoughData && visibleCorrelations.length > 0 ? (
+              visibleCorrelations.map((insight) => (
+                <CorrelationCard key={insight.id} insight={insight} />
+              ))
+            ) : (
+              <View style={styles.patternsPlaceholder}>
+                <Text style={styles.patternsText}>
+                  Keep logging — your patterns will emerge here.
+                </Text>
+              </View>
+            )}
           </View>
         </FadeUpSection>
       </ScrollView>
@@ -99,11 +148,22 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: colors.ink,
   },
+  weekCard: {
+    backgroundColor: colors.warmWhite,
+    borderRadius: radius.xl,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    ...shadows.subtle,
+  },
+  tilesRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
   streaksRow: {
     flexDirection: 'row',
     gap: 10,
   },
-  patternsCard: {
+  patternsPlaceholder: {
     backgroundColor: colors.warmWhite,
     borderRadius: radius.xl,
     paddingVertical: 22,
