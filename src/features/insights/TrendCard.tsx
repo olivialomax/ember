@@ -101,8 +101,8 @@ const styles = StyleSheet.create({
   },
   avgValue: {
     fontFamily: typography.displayMedium,
-    fontSize: 18,
-    lineHeight: 18,
+    fontSize: 22,
+    lineHeight: 22,
   },
   avgLabel: {
     fontFamily: typography.body,
