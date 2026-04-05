@@ -6,15 +6,25 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  FlatList,
 } from 'react-native';
 import { ScreenWrapper } from '../../shared/components/ScreenWrapper';
 import { useAuth } from '../auth/useAuth';
 import { useAuthStore } from '../auth/useAuthStore';
+import { useProfileStore } from '../profile';
 import { colors, radius, shadows, spacing, typography } from '../../tokens';
+
+const AVATAR_OPTIONS = [
+  '🌿', '🌸', '🌻', '🍃', '✨', '🌙',
+  '☀️', '🌾', '🦋', '🌊', '🍀', '🌺',
+  '🌱', '🫧', '🕊️', '🐚', '🌼', '🍂',
+  '🦔', '🐝', '🌛', '🌬️', '🍵', '🪷',
+];
 
 export function SettingsScreen() {
   const { logout, isSubmitting, error } = useAuth();
   const { user } = useAuthStore();
+  const { avatar, setAvatar } = useProfileStore();
 
   const displayName =
     (user?.user_metadata?.display_name as string | undefined) ??
@@ -44,15 +54,40 @@ export function SettingsScreen() {
       {/* Profile card */}
       <View style={styles.section}>
         <View style={styles.card}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarInitial}>
-              {displayName.charAt(0).toUpperCase()}
-            </Text>
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarEmoji}>{avatar}</Text>
           </View>
           <View style={styles.profileText}>
             <Text style={styles.displayName}>{displayName}</Text>
             <Text style={styles.email}>{email}</Text>
           </View>
+        </View>
+      </View>
+
+      {/* Avatar picker */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>Your icon</Text>
+        <View style={styles.pickerCard}>
+          <FlatList
+            data={AVATAR_OPTIONS}
+            keyExtractor={(item) => item}
+            numColumns={6}
+            scrollEnabled={false}
+            columnWrapperStyle={styles.pickerRow}
+            contentContainerStyle={styles.pickerGrid}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[
+                  styles.pickerOption,
+                  item === avatar && styles.pickerOptionSelected,
+                ]}
+                onPress={() => setAvatar(item)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.pickerEmoji}>{item}</Text>
+              </TouchableOpacity>
+            )}
+          />
         </View>
       </View>
 
@@ -126,7 +161,7 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
     ...shadows.card,
   },
-  avatar: {
+  avatarCircle: {
     width: 48,
     height: 48,
     borderRadius: radius.full,
@@ -136,11 +171,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarInitial: {
-    fontFamily: typography.displayMedium,
-    fontSize: 20,
-    color: colors.sage,
-    lineHeight: 20,
+  avatarEmoji: {
+    fontSize: 24,
+  },
+  pickerCard: {
+    backgroundColor: colors.warmWhite,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    ...shadows.subtle,
+  },
+  pickerGrid: {
+    gap: spacing.sm,
+  },
+  pickerRow: {
+    gap: spacing.sm,
+    justifyContent: 'space-between',
+  },
+  pickerOption: {
+    flex: 1,
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.md,
+    backgroundColor: colors.cream,
+  },
+  pickerOptionSelected: {
+    backgroundColor: colors.sagePale,
+    borderWidth: 2,
+    borderColor: colors.sageLight,
+  },
+  pickerEmoji: {
+    fontSize: 24,
   },
   profileText: {
     flex: 1,

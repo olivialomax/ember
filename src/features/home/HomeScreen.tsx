@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,7 @@ import { TodayCard } from '../checkin/TodayCard';
 import { StreakCard } from '../streaks/StreakCard';
 import { useStreaks } from '../streaks/useStreaks';
 import { useAuthStore } from '../auth/useAuthStore';
-import { useProfileStore, ProfilePickerModal } from '../profile';
+import { useProfileStore } from '../profile';
 import { colors, radius, shadows, spacing, typography } from '../../tokens';
 
 // ─── Greeting helpers ────────────────────────────────────────────────────────
@@ -38,7 +38,7 @@ function getFirstName(user: { display_name?: string | null; email?: string } | n
 // ─── Main screen ─────────────────────────────────────────────────────────────
 
 type RootNavProp = NativeStackNavigationProp<{ CheckIn: undefined; Gratitude: undefined }>;
-type TabNavProp = BottomTabNavigationProp<{ Insights: undefined }>;
+type TabNavProp = BottomTabNavigationProp<{ Insights: undefined; Settings: undefined }>;
 
 export function HomeScreen() {
   const navigation = useNavigation<RootNavProp>();
@@ -47,7 +47,6 @@ export function HomeScreen() {
   const { avatar } = useProfileStore();
   const { streaks } = useStreaks();
   const { items: gratitudeItems, meetsMinimum: gratitudeMet } = useGratitude();
-  const [pickerVisible, setPickerVisible] = useState(false);
 
   const greetingPrefix = getGreetingPrefix();
   const firstName = getFirstName(
@@ -65,10 +64,6 @@ export function HomeScreen() {
 
   return (
     <ScreenWrapper>
-      <ProfilePickerModal
-        visible={pickerVisible}
-        onClose={() => setPickerVisible(false)}
-      />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
@@ -94,7 +89,7 @@ export function HomeScreen() {
             </View>
             <TouchableOpacity
               style={styles.avatarButton}
-              onPress={() => setPickerVisible(true)}
+              onPress={() => tabNavigation.navigate('Settings')}
               activeOpacity={0.75}
             >
               <Text style={styles.avatarEmoji}>{avatar}</Text>
