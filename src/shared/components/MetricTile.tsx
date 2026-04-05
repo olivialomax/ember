@@ -5,13 +5,13 @@ import { TrackerKey } from '../../types';
 
 const TRACKER_META: Record<
   TrackerKey,
-  { label: string; unit?: string; color: string; icon: string }
+  { label: string; unit?: string; color: string }
 > = {
-  mood: { label: 'Mood', color: colors.sage, icon: '😊' },
-  energy: { label: 'Energy', color: colors.energyGold, icon: '⚡' },
-  stress: { label: 'Stress', color: colors.stressRed, icon: '🌊' },
-  movement: { label: 'Move', unit: 'min', color: colors.blueCalm, icon: '👟' },
-  drinks: { label: 'Drinks', color: colors.amber, icon: '💧' },
+  mood: { label: 'Mood', color: colors.sage },
+  energy: { label: 'Energy', color: colors.energyGold },
+  stress: { label: 'Stress', color: colors.stressRed },
+  movement: { label: 'Move', unit: 'min', color: colors.blueCalm },
+  drinks: { label: 'Drinks', color: colors.amber },
 };
 
 interface MetricTileProps {
@@ -28,7 +28,6 @@ const isScore = tracker === 'mood' || tracker === 'energy' || tracker === 'stres
 
   return (
     <View style={styles.tile}>
-      <Text style={[styles.icon, { color: meta.color }]}>{meta.icon}</Text>
       <Text style={[styles.value, isScore && styles.valueScore, { color: hasValue ? meta.color : colors.stone }]}>
         {numericDisplay}
       </Text>
@@ -46,18 +45,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     alignItems: 'center',
   },
-  icon: {
-    fontSize: 14,
-    marginBottom: spacing.xs,
-  },
   value: {
     fontFamily: typography.displayMedium,
     fontSize: 20,
     lineHeight: 20,
   },
   valueScore: {
-    fontSize: 28,
-    lineHeight: 28,
+    fontSize: 32,
+    lineHeight: 32,
   },
   label: {
     fontFamily: typography.body,
