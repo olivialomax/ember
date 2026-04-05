@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -16,16 +16,17 @@ import { TodayCard } from '../checkin/TodayCard';
 import { StreakCard } from '../streaks/StreakCard';
 import { useStreaks } from '../streaks/useStreaks';
 import { useAuthStore } from '../auth/useAuthStore';
-import { colors, spacing, typography } from '../../tokens';
+import { useProfileStore, ProfilePickerModal } from '../profile';
+import { colors, radius, shadows, spacing, typography } from '../../tokens';
 
 // ─── Greeting helpers ────────────────────────────────────────────────────────
 
-function getGreeting(): { prefix: string; accent: string } {
+function getGreetingPrefix(): string {
   const hour = new Date().getHours();
-  if (hour < 12) return { prefix: 'Good morning,', accent: 'sunshine' };
-  if (hour < 17) return { prefix: 'Good afternoon,', accent: 'friend' };
-  if (hour < 21) return { prefix: 'Good evening,', accent: 'lovely' };
-  return { prefix: 'Good night,', accent: 'you' };
+  if (hour < 12) return 'Good morning,';
+  if (hour < 17) return 'Good afternoon,';
+  if (hour < 21) return 'Good evening,';
+  return 'Good night,';
 }
 
 function getFirstName(user: { display_name?: string | null; email?: string } | null): string {
@@ -43,9 +44,12 @@ export function HomeScreen() {
   const navigation = useNavigation<RootNavProp>();
   const tabNavigation = useNavigation<TabNavProp>();
   const { user } = useAuthStore();
+  const { avatar } = useProfileStore();
   const { streaks } = useStreaks();
   const { items: gratitudeItems, meetsMinimum: gratitudeMet } = useGratitude();
-  const greeting = getGreeting();
+  const [pickerVisible, setPickerVisible] = useState(false);
+
+  const greetingPrefix = getGreetingPrefix();
   const firstName = getFirstName(
     user
       ? {
@@ -61,6 +65,10 @@ export function HomeScreen() {
 
   return (
     <ScreenWrapper>
+      <ProfilePickerModal
+        visible={pickerVisible}
+        onClose={() => setPickerVisible(false)}
+      />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
@@ -68,19 +76,30 @@ export function HomeScreen() {
       >
         {/* ── Header ─────────────────────────────────────────────────── */}
         <View style={styles.header}>
-          <View style={styles.greetingRow}>
-            <Text style={styles.greeting}>
-              {greeting.prefix}{' '}
-              <Text style={styles.greetingAccent}>{greeting.accent}</Text>
-            </Text>
+          <View style={styles.headerRow}>
+            <View style={styles.greetingBlock}>
+              <View style={styles.greetingRow}>
+                <Text style={styles.greeting}>
+                  {greetingPrefix}{' '}
+                  <Text style={styles.greetingAccent}>{firstName}</Text>
+                </Text>
+              </View>
+              <Text style={styles.subGreeting}>
+                {new Date().toLocaleDateString('en-GB', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                }).toUpperCase()}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.avatarButton}
+              onPress={() => setPickerVisible(true)}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.avatarEmoji}>{avatar}</Text>
+            </TouchableOpacity>
           </View>
-          <Text style={styles.subGreeting}>
-            {new Date().toLocaleDateString('en-GB', {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-            }).toUpperCase()}
-          </Text>
         </View>
 
         {/* ── Today card ─────────────────────────────────────────────── */}
@@ -196,9 +215,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xxxl,
     paddingBottom: spacing.xl,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  greetingBlock: {
+    flex: 1,
+    paddingRight: spacing.md,
+  },
   greetingRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+  },
+  avatarButton: {
+    width: 46,
+    height: 46,
+    borderRadius: radius.full,
+    backgroundColor: colors.sagePale,
+    borderWidth: 2,
+    borderColor: colors.sageLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.subtle,
+  },
+  avatarEmoji: {
+    fontSize: 22,
   },
   greeting: {
     fontFamily: typography.display,
