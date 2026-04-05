@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  TextInput,
 } from 'react-native';
 import { ScreenWrapper } from '../../shared/components/ScreenWrapper';
 import { useAuth } from '../auth/useAuth';
@@ -22,7 +23,7 @@ const AVATAR_OPTIONS = [
 ];
 
 export function SettingsScreen() {
-  const { logout, isSubmitting, error } = useAuth();
+  const { logout, updateDisplayName, isSubmitting, error } = useAuth();
   const { user } = useAuthStore();
   const { avatar, setAvatar } = useProfileStore();
 
@@ -31,6 +32,29 @@ export function SettingsScreen() {
     user?.email?.split('@')[0] ??
     'You';
   const email = user?.email ?? '';
+
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState(displayName);
+
+  function handleEditName() {
+    setNameValue(displayName);
+    setEditingName(true);
+  }
+
+  async function handleSaveName() {
+    const trimmed = nameValue.trim();
+    if (!trimmed || trimmed === displayName) {
+      setEditingName(false);
+      return;
+    }
+    await updateDisplayName(trimmed);
+    setEditingName(false);
+  }
+
+  function handleCancelName() {
+    setEditingName(false);
+    setNameValue(displayName);
+  }
 
   function handleLogout() {
     Alert.alert(
@@ -58,7 +82,39 @@ export function SettingsScreen() {
             <Text style={styles.avatarEmoji}>{avatar}</Text>
           </View>
           <View style={styles.profileText}>
-            <Text style={styles.displayName}>{displayName}</Text>
+            {editingName ? (
+              <View style={styles.nameEditRow}>
+                <TextInput
+                  style={styles.nameInput}
+                  value={nameValue}
+                  onChangeText={setNameValue}
+                  autoFocus
+                  returnKeyType="done"
+                  onSubmitEditing={handleSaveName}
+                  maxLength={40}
+                  selectTextOnFocus
+                />
+                <View style={styles.nameActions}>
+                  <TouchableOpacity onPress={handleSaveName} disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <ActivityIndicator size="small" color={colors.sage} />
+                    ) : (
+                      <Text style={styles.nameSave}>Save</Text>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleCancelName}>
+                    <Text style={styles.nameCancel}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <TouchableOpacity onPress={handleEditName} activeOpacity={0.7}>
+                <View style={styles.nameRow}>
+                  <Text style={styles.displayName}>{displayName}</Text>
+                  <Text style={styles.nameEditHint}>Edit</Text>
+                </View>
+              </TouchableOpacity>
+            )}
             <Text style={styles.email}>{email}</Text>
           </View>
         </View>
@@ -206,10 +262,48 @@ const styles = StyleSheet.create({
   profileText: {
     flex: 1,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
   displayName: {
     fontFamily: typography.displayMedium,
     fontSize: 17,
     color: colors.ink,
+  },
+  nameEditHint: {
+    fontFamily: typography.body,
+    fontSize: 11,
+    color: colors.stone,
+    opacity: 0.7,
+  },
+  nameEditRow: {
+    gap: spacing.xs,
+  },
+  nameInput: {
+    fontFamily: typography.displayMedium,
+    fontSize: 17,
+    color: colors.ink,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.sageLight,
+    paddingBottom: 2,
+    paddingTop: 0,
+  },
+  nameActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.xs,
+  },
+  nameSave: {
+    fontFamily: typography.bodyMedium,
+    fontSize: 12,
+    color: colors.sage,
+  },
+  nameCancel: {
+    fontFamily: typography.body,
+    fontSize: 12,
+    color: colors.stone,
   },
   email: {
     fontFamily: typography.body,

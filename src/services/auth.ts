@@ -25,3 +25,10 @@ export async function signOut() {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
 }
+
+export async function updateDisplayName(displayName: string) {
+  const { error } = await supabase.auth.updateUser({
+    data: { display_name: displayName.trim() },
+  });
+  if (error) throw error;
+}

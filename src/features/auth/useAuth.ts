@@ -32,6 +32,18 @@ export function useAuth() {
     }
   }
 
+  async function updateDisplayName(name: string) {
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      await authService.updateDisplayName(name);
+    } catch (e: unknown) {
+      setError(friendlyError(e));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   async function logout() {
     setError(null);
     try {
@@ -42,7 +54,7 @@ export function useAuth() {
     }
   }
 
-  return { login, register, logout, isSubmitting, error, clearError: () => setError(null) };
+  return { login, register, logout, updateDisplayName, isSubmitting, error, clearError: () => setError(null) };
 }
 
 function friendlyError(e: unknown): string {
