@@ -7,11 +7,11 @@ const TRACKER_META: Record<
   TrackerKey,
   { label: string; unit?: string; color: string; icon: string }
 > = {
-  mood: { label: 'Mood', color: colors.sage, icon: '◐' },
-  energy: { label: 'Energy', color: colors.energyGold, icon: '◑' },
-  stress: { label: 'Stress', color: colors.stressRed, icon: '◒' },
-  movement: { label: 'Move', unit: 'min', color: colors.blueCalm, icon: '◓' },
-  drinks: { label: 'Drinks', color: colors.amber, icon: '◔' },
+  mood: { label: 'Mood', color: colors.sage, icon: '😊' },
+  energy: { label: 'Energy', color: colors.energyGold, icon: '⚡' },
+  stress: { label: 'Stress', color: colors.stressRed, icon: '🌊' },
+  movement: { label: 'Move', unit: 'min', color: colors.blueCalm, icon: '👟' },
+  drinks: { label: 'Drinks', color: colors.amber, icon: '💧' },
 };
 
 interface MetricTileProps {
