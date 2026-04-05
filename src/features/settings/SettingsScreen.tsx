@@ -17,9 +17,12 @@ import { ScreenWrapper } from '../../shared/components/ScreenWrapper';
 import { useAuth } from '../auth/useAuth';
 import { useAuthStore } from '../auth/useAuthStore';
 import { useProfileStore } from '../profile';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { useNotificationStore } from '../notifications';
 import { requestPermission, scheduleDaily, cancelReminder } from '../../services/notifications';
 import { colors, radius, shadows, spacing, typography } from '../../tokens';
+
+const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
 // Preset reminder times: 7am–10pm hourly
 const REMINDER_TIMES: { hour: number; minute: number; label: string }[] = Array.from(
@@ -202,30 +205,40 @@ export function SettingsScreen() {
       {/* Reminders */}
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Reminders</Text>
-        <View style={styles.actionList}>
-          <View style={styles.reminderRow}>
-            <Text style={styles.reminderLabel}>Daily check-in reminder</Text>
-            <Switch
-              value={notifEnabled}
-              onValueChange={handleToggleNotifications}
-              trackColor={{ false: colors.cream, true: colors.sageLight }}
-              thumbColor={notifEnabled ? colors.sage : colors.stone}
-            />
+        {isExpoGo ? (
+          <View style={styles.actionList}>
+            <View style={styles.reminderRow}>
+              <Text style={styles.reminderUnavailable}>
+                Reminders require a native build
+              </Text>
+            </View>
           </View>
-          {notifEnabled && (
-            <>
-              <View style={styles.divider} />
-              <TouchableOpacity
-                style={styles.reminderRow}
-                onPress={() => setTimePickerVisible(true)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.reminderLabel}>Remind me at</Text>
-                <Text style={styles.reminderTimeValue}>{formatTime(hour, minute)}</Text>
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
+        ) : (
+          <View style={styles.actionList}>
+            <View style={styles.reminderRow}>
+              <Text style={styles.reminderLabel}>Daily check-in reminder</Text>
+              <Switch
+                value={notifEnabled}
+                onValueChange={handleToggleNotifications}
+                trackColor={{ false: colors.cream, true: colors.sageLight }}
+                thumbColor={notifEnabled ? colors.sage : colors.stone}
+              />
+            </View>
+            {notifEnabled && (
+              <>
+                <View style={styles.divider} />
+                <TouchableOpacity
+                  style={styles.reminderRow}
+                  onPress={() => setTimePickerVisible(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.reminderLabel}>Remind me at</Text>
+                  <Text style={styles.reminderTimeValue}>{formatTime(hour, minute)}</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        )}
       </View>
 
       {/* Time picker modal */}
@@ -443,6 +456,12 @@ const styles = StyleSheet.create({
     fontFamily: typography.body,
     fontSize: 14,
     color: colors.ink,
+  },
+  reminderUnavailable: {
+    fontFamily: typography.body,
+    fontSize: 13,
+    color: colors.stone,
+    fontStyle: 'italic',
   },
   reminderTimeValue: {
     fontFamily: typography.bodyMedium,

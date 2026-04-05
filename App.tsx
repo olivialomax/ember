@@ -13,6 +13,7 @@ import {
   DMSans_400Regular,
   DMSans_500Medium,
 } from '@expo-google-fonts/dm-sans';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { supabase } from './src/services/supabase';
 import { useAuthStore } from './src/features/auth/useAuthStore';
 import { useNotificationStore } from './src/features/notifications';
@@ -63,7 +64,8 @@ export default function App() {
 
   // Re-schedule the daily reminder on app open (handles reinstalls / OS clearing)
   useEffect(() => {
-    if (notifEnabled) {
+    const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+    if (!isExpoGo && notifEnabled) {
       scheduleDaily(hour, minute);
     }
   }, []);
