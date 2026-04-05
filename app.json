@@ -14,7 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.ember"
+      "bundleIdentifier": "com.anonymous.ember",
+      "infoPlist": {
+        "NSUserNotificationsUsageDescription": "Ember sends a gentle daily reminder to help you stay consistent with your check-ins."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -30,7 +33,14 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "color": "#FAF7F2",
+          "iosDisplayInForeground": true
+        }
+      ]
     ]
   }
 }

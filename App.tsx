@@ -15,6 +15,8 @@ import {
 } from '@expo-google-fonts/dm-sans';
 import { supabase } from './src/services/supabase';
 import { useAuthStore } from './src/features/auth/useAuthStore';
+import { useNotificationStore } from './src/features/notifications';
+import { scheduleDaily } from './src/services/notifications';
 import { queryClient } from './src/shared/hooks/useQueryClient';
 import { AppNavigator } from './src/navigation';
 import { colors } from './src/tokens';
@@ -23,6 +25,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const { session, setSession, setIsLoading } = useAuthStore();
+  const { enabled: notifEnabled, hour, minute } = useNotificationStore();
   const [appReady, setAppReady] = useState(false);
 
   const [fontsLoaded] = useFonts({
@@ -57,6 +60,13 @@ export default function App() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
+
+  // Re-schedule the daily reminder on app open (handles reinstalls / OS clearing)
+  useEffect(() => {
+    if (notifEnabled) {
+      scheduleDaily(hour, minute);
+    }
+  }, []);
 
   if (!appReady) return null;
 
