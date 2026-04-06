@@ -53,11 +53,32 @@ export function HomeScreen() {
   const { weekAvg, series } = useInsights();
 
   const weekHasData = Object.values(weekAvg).some((v) => v !== null);
-  const weekLogged = series.mood.slice(-7).map((v) => v !== null);
-  const weekDayLabels = Array.from({ length: 7 }, (_, i) => {
+
+  // Build a date→logged map from the 14-day mood series
+  const seriesLoggedByDate = new Map<string, boolean>();
+  for (let i = 0; i < 14; i++) {
     const d = new Date();
-    d.setDate(d.getDate() - (6 - i));
-    return ['S', 'M', 'T', 'W', 'T', 'F', 'S'][d.getDay()];
+    d.setDate(d.getDate() - (13 - i));
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    seriesLoggedByDate.set(key, series.mood[i] !== null);
+  }
+
+  // Sunday–Saturday of the current calendar week
+  const todayDate = new Date();
+  const todayStr = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
+  const sunday = new Date(todayDate);
+  sunday.setDate(todayDate.getDate() - todayDate.getDay());
+
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(sunday);
+    d.setDate(sunday.getDate() + i);
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const isFuture = dateStr > todayStr;
+    return {
+      label: ['S', 'M', 'T', 'W', 'T', 'F', 'S'][i],
+      logged: !isFuture && (seriesLoggedByDate.get(dateStr) ?? false),
+      isFuture,
+    };
   });
 
   const TRACKERS: TrackerKey[] = ['mood', 'energy', 'stress', 'movement', 'drinks'];
@@ -159,10 +180,10 @@ export function HomeScreen() {
             {weekHasData ? (
               <View style={styles.weekCard}>
                 <View style={styles.dotStrip}>
-                  {weekDayLabels.map((label, i) => (
+                  {weekDays.map(({ label, logged, isFuture }, i) => (
                     <View key={i} style={styles.dotItem}>
-                      <View style={[styles.dot, weekLogged[i] && styles.dotFilled]} />
-                      <Text style={styles.dotLabel}>{label}</Text>
+                      <View style={[styles.dot, logged && styles.dotFilled, isFuture && styles.dotFuture]} />
+                      <Text style={[styles.dotLabel, isFuture && styles.dotLabelFuture]}>{label}</Text>
                     </View>
                   ))}
                 </View>
@@ -321,17 +342,17 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     paddingVertical: spacing.xl,
     paddingHorizontal: spacing.lg,
-    gap: spacing.lg,
+    rowGap: spacing.lg,
     ...shadows.subtle,
   },
   dotStrip: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 0,
   },
   dotItem: {
     flex: 1,
     alignItems: 'center',
-    gap: spacing.xs,
+    rowGap: spacing.xs,
   },
   dot: {
     width: 8,
@@ -339,12 +360,16 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     borderWidth: 1,
     borderColor: colors.stone,
-    opacity: 0.3,
+    opacity: 0.35,
   },
   dotFilled: {
     backgroundColor: colors.sage,
     borderColor: colors.sage,
     opacity: 1,
+  },
+  dotFuture: {
+    borderColor: colors.stone,
+    opacity: 0.12,
   },
   dotLabel: {
     fontFamily: typography.body,
@@ -352,6 +377,9 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.06 * 9,
     color: colors.stone,
+  },
+  dotLabelFuture: {
+    opacity: 0.35,
   },
   tilesRow: {
     flexDirection: 'row',
