@@ -17,7 +17,10 @@ import { StreakCard } from '../streaks/StreakCard';
 import { useStreaks } from '../streaks/useStreaks';
 import { useAuthStore } from '../auth/useAuthStore';
 import { useProfileStore } from '../profile';
+import { useInsights } from '../insights/useInsights';
+import { MetricTile } from '../../shared/components/MetricTile';
 import { colors, radius, shadows, spacing, typography } from '../../tokens';
+import { TrackerKey } from '../../types';
 
 // ─── Greeting helpers ────────────────────────────────────────────────────────
 
@@ -47,6 +50,17 @@ export function HomeScreen() {
   const { avatar } = useProfileStore();
   const { streaks } = useStreaks();
   const { items: gratitudeItems, meetsMinimum: gratitudeMet } = useGratitude();
+  const { weekAvg, series } = useInsights();
+
+  const weekHasData = Object.values(weekAvg).some((v) => v !== null);
+  const weekLogged = series.mood.slice(-7).map((v) => v !== null);
+  const weekDayLabels = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return ['S', 'M', 'T', 'W', 'T', 'F', 'S'][d.getDay()];
+  });
+
+  const TRACKERS: TrackerKey[] = ['mood', 'energy', 'stress', 'movement', 'drinks'];
 
   const greetingPrefix = getGreetingPrefix();
   const firstName = getFirstName(
@@ -133,20 +147,38 @@ export function HomeScreen() {
           </View>
         </FadeUpSection>
 
-        {/* ── Insights placeholder ───────────────────────────────────── */}
+        {/* ── This week ──────────────────────────────────────────────── */}
         <FadeUpSection delay={200}>
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>This week</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => tabNavigation.navigate('Insights')}>
                 <Text style={styles.sectionLink}>See insights</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.insightsPlaceholder}>
-              <Text style={styles.insightsPlaceholderText}>
-                Log a few days to start seeing your patterns.
-              </Text>
-            </View>
+            {weekHasData ? (
+              <View style={styles.weekCard}>
+                <View style={styles.dotStrip}>
+                  {weekDayLabels.map((label, i) => (
+                    <View key={i} style={styles.dotItem}>
+                      <View style={[styles.dot, weekLogged[i] && styles.dotFilled]} />
+                      <Text style={styles.dotLabel}>{label}</Text>
+                    </View>
+                  ))}
+                </View>
+                <View style={styles.tilesRow}>
+                  {TRACKERS.map((key) => (
+                    <MetricTile key={key} tracker={key} value={weekAvg[key]} />
+                  ))}
+                </View>
+              </View>
+            ) : (
+              <View style={styles.insightsPlaceholder}>
+                <Text style={styles.insightsPlaceholderText}>
+                  Log a few days to start seeing your patterns.
+                </Text>
+              </View>
+            )}
           </View>
         </FadeUpSection>
 
@@ -284,9 +316,50 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
   },
+  weekCard: {
+    backgroundColor: colors.warmWhite,
+    borderRadius: radius.xl,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.lg,
+    ...shadows.subtle,
+  },
+  dotStrip: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  dotItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.stone,
+    opacity: 0.3,
+  },
+  dotFilled: {
+    backgroundColor: colors.sage,
+    borderColor: colors.sage,
+    opacity: 1,
+  },
+  dotLabel: {
+    fontFamily: typography.body,
+    fontSize: 9,
+    textTransform: 'uppercase',
+    letterSpacing: 0.06 * 9,
+    color: colors.stone,
+  },
+  tilesRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
   insightsPlaceholder: {
     backgroundColor: colors.warmWhite,
-    borderRadius: 18,
+    borderRadius: radius.lg,
     paddingVertical: 22,
     paddingHorizontal: spacing.xl,
     alignItems: 'center',
