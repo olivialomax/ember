@@ -5,6 +5,7 @@ import { FadeUpSection } from '../../shared/components/FadeUpSection';
 import { CalendarGrid } from './CalendarGrid';
 import { DayDetailPanel } from './DayDetailPanel';
 import { useCalendar } from './useCalendar';
+import { useProfile } from '../profile';
 import { colors, spacing } from '../../tokens';
 
 export function CalendarScreen() {
@@ -15,6 +16,7 @@ export function CalendarScreen() {
     setSelectedDate,
     goToPrevMonth,
     goToNextMonth,
+    entriesData,
     checkinDates,
     eventDates,
     entryForSelected,
@@ -25,6 +27,24 @@ export function CalendarScreen() {
     deleteEvent,
     isAdding,
   } = useCalendar();
+
+  const { profile } = useProfile();
+
+  const drinkStatusDates: Record<string, 'under' | 'at' | 'over'> = {};
+  if (profile?.drink_limits_weekly) {
+    for (const entry of entriesData) {
+      if (entry.drinks == null) continue;
+      const dow = String(new Date(entry.date + 'T00:00:00').getDay());
+      const limit = profile.drink_limits_weekly[dow];
+      if (limit == null) continue;
+      if (entry.drinks < limit) drinkStatusDates[entry.date] = 'under';
+      else if (entry.drinks === limit) drinkStatusDates[entry.date] = 'at';
+      else drinkStatusDates[entry.date] = 'over';
+    }
+  }
+
+  const selectedDow = String(new Date(selectedDate + 'T00:00:00').getDay());
+  const drinkGoalForSelected = profile?.drink_limits_weekly?.[selectedDow] ?? null;
 
   return (
     <ScreenWrapper>
@@ -42,6 +62,7 @@ export function CalendarScreen() {
               selectedDate={selectedDate}
               checkinDates={checkinDates}
               eventDates={eventDates}
+              drinkStatusDates={drinkStatusDates}
               onSelectDate={setSelectedDate}
               onPrevMonth={goToPrevMonth}
               onNextMonth={goToNextMonth}
@@ -60,6 +81,7 @@ export function CalendarScreen() {
               onAddEvent={addEvent}
               onDeleteEvent={deleteEvent}
               isAdding={isAdding}
+              drinkGoal={drinkGoalForSelected}
             />
           </View>
         </FadeUpSection>

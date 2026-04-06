@@ -9,6 +9,7 @@ import {
 import { colors, radius, shadows, spacing, typography } from '../../tokens';
 import { MetricTile } from '../../shared/components/MetricTile';
 import { useToday } from './useToday';
+import { useProfile } from '../profile';
 
 const TRACKERS = ['mood', 'energy', 'stress', 'movement', 'drinks'] as const;
 
@@ -18,6 +19,9 @@ interface TodayCardProps {
 
 export function TodayCard({ onCheckInPress }: TodayCardProps) {
   const { entry, isLoading, isSyncing, hasAnyValue } = useToday();
+  const { profile } = useProfile();
+  const todayDow = String(new Date().getDay());
+  const todayDrinkGoal = profile?.drink_limits_weekly?.[todayDow] ?? null;
 
   return (
     <View style={styles.card}>
@@ -37,7 +41,12 @@ export function TodayCard({ onCheckInPress }: TodayCardProps) {
       ) : (
         <View style={styles.metricsRow}>
           {TRACKERS.map((key) => (
-            <MetricTile key={key} tracker={key} value={entry[key] as number | null} />
+            <MetricTile
+                key={key}
+                tracker={key}
+                value={entry[key] as number | null}
+                drinkLimit={key === 'drinks' ? todayDrinkGoal : undefined}
+              />
           ))}
         </View>
       )}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,7 @@ import {
 import { ScreenWrapper } from '../../shared/components/ScreenWrapper';
 import { useAuth } from '../auth/useAuth';
 import { useAuthStore } from '../auth/useAuthStore';
-import { useProfileStore } from '../profile';
+import { useProfileStore, useProfile } from '../profile';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { useNotificationStore } from '../notifications';
 import { requestPermission, scheduleDaily, cancelReminder } from '../../services/notifications';
@@ -34,6 +34,16 @@ const REMINDER_TIMES: { hour: number; minute: number; label: string }[] = Array.
     return { hour, minute: 0, label: `${display}:00 ${ampm}` };
   }
 );
+
+const WEEK_DAYS = [
+  { label: 'Mon', key: '1' },
+  { label: 'Tue', key: '2' },
+  { label: 'Wed', key: '3' },
+  { label: 'Thu', key: '4' },
+  { label: 'Fri', key: '5' },
+  { label: 'Sat', key: '6' },
+  { label: 'Sun', key: '0' },
+];
 
 const AVATAR_OPTIONS = [
   '🌿', '🌸', '🌻', '🍃', '✨', '🌙',
@@ -74,6 +84,37 @@ export function SettingsScreen() {
   function handleCancelName() {
     setEditingName(false);
     setNameValue(displayName);
+  }
+
+  const { profile, update: updateProfileField } = useProfile();
+
+  const [weeklyLimits, setWeeklyLimits] = useState<Record<string, number | null>>({});
+
+  useEffect(() => {
+    if (profile !== null) {
+      setWeeklyLimits(profile.drink_limits_weekly ?? {});
+    }
+  }, [profile?.drink_limits_weekly]);
+
+  function setDayLimit(key: string, value: number | null) {
+    const updated = { ...weeklyLimits, [key]: value };
+    setWeeklyLimits(updated);
+    updateProfileField({
+      drink_limits_weekly: Object.fromEntries(
+        Object.entries(updated).filter(([, v]) => v !== null)
+      ) as Record<string, number>,
+    });
+  }
+
+  function incrementDay(key: string) {
+    const current = weeklyLimits[key] ?? 0;
+    if (current < 20) setDayLimit(key, current + 1);
+  }
+
+  function decrementDay(key: string) {
+    const current = weeklyLimits[key] ?? null;
+    if (current === null || current <= 0) setDayLimit(key, null);
+    else setDayLimit(key, current - 1);
   }
 
   const { enabled: notifEnabled, hour, minute, setEnabled, setTime } = useNotificationStore();
@@ -199,6 +240,42 @@ export function SettingsScreen() {
               </TouchableOpacity>
             )}
           />
+        </View>
+      </View>
+
+      {/* Weekly drink goals */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>Daily drink goal</Text>
+        <View style={styles.actionList}>
+          <View style={styles.drinkGoalGrid}>
+            {WEEK_DAYS.map(({ label, key }) => {
+              const val = weeklyLimits[key] ?? null;
+              const atMax = val !== null && val >= 20;
+              const atMin = val === null;
+              return (
+                <View key={key} style={styles.dayColumn}>
+                  <Text style={styles.dayLabel}>{label}</Text>
+                  <TouchableOpacity
+                    onPress={() => incrementDay(key)}
+                    disabled={atMax}
+                    style={[styles.dayBtn, atMax && styles.dayBtnDisabled]}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.dayBtnText, atMax && styles.dayBtnTextDisabled]}>+</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.dayValue}>{val ?? '—'}</Text>
+                  <TouchableOpacity
+                    onPress={() => decrementDay(key)}
+                    disabled={atMin}
+                    style={[styles.dayBtn, atMin && styles.dayBtnDisabled]}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.dayBtnText, atMin && styles.dayBtnTextDisabled]}>−</Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+          </View>
         </View>
       </View>
 
@@ -542,6 +619,54 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.stressRed,
     letterSpacing: 0.02 * 14,
+  },
+  drinkGoalGrid: {
+    flexDirection: 'row',
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.sm,
+  },
+  dayColumn: {
+    flex: 1,
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  dayLabel: {
+    fontFamily: typography.bodyMedium,
+    fontSize: 9,
+    textTransform: 'uppercase',
+    letterSpacing: 0.08 * 9,
+    color: colors.stone,
+    marginBottom: spacing.xs,
+  },
+  dayBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: radius.md,
+    backgroundColor: colors.cream,
+    borderWidth: 1,
+    borderColor: 'rgba(44,40,37,0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayBtnDisabled: {
+    opacity: 0.3,
+  },
+  dayBtnText: {
+    fontFamily: typography.display,
+    fontSize: 18,
+    color: colors.ink,
+    lineHeight: 22,
+  },
+  dayBtnTextDisabled: {
+    color: colors.stone,
+  },
+  dayValue: {
+    fontFamily: typography.displayMedium,
+    fontSize: 16,
+    color: colors.ink,
+    lineHeight: 20,
+    minWidth: 20,
+    textAlign: 'center',
   },
   errorContainer: {
     marginHorizontal: spacing.xl,

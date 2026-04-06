@@ -10,6 +10,7 @@ interface CalendarGridProps {
   selectedDate: string;
   checkinDates: Set<string>;
   eventDates: Set<string>;
+  drinkStatusDates: Record<string, 'under' | 'at' | 'over'>;
   onSelectDate: (date: string) => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
@@ -69,6 +70,7 @@ export function CalendarGrid({
   selectedDate,
   checkinDates,
   eventDates,
+  drinkStatusDates,
   onSelectDate,
   onPrevMonth,
   onNextMonth,
@@ -118,6 +120,7 @@ export function CalendarGrid({
               isSelected={day.date === selectedDate}
               hasCheckin={checkinDates.has(day.date)}
               hasEvent={eventDates.has(day.date)}
+              drinkStatus={drinkStatusDates[day.date] ?? null}
               onPress={() => onSelectDate(day.date)}
             />
           ))}

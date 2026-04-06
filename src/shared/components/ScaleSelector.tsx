@@ -6,7 +6,7 @@ interface ScaleSelectorProps {
   label: string;
   value: number | null;
   onChange: (value: number) => void;
-  color: string;
+  colors: string[];
 }
 
 const SCALE_LABELS: Record<number, string> = {
@@ -17,7 +17,7 @@ const SCALE_LABELS: Record<number, string> = {
   5: 'Very high',
 };
 
-export function ScaleSelector({ label, value, onChange, color }: ScaleSelectorProps) {
+export function ScaleSelector({ label, value, onChange, colors }: ScaleSelectorProps) {
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
@@ -29,7 +29,7 @@ export function ScaleSelector({ label, value, onChange, color }: ScaleSelectorPr
               key={n}
               style={[
                 styles.option,
-                selected && { backgroundColor: color, borderColor: color },
+                selected && { backgroundColor: colors[n - 1], borderColor: colors[n - 1] },
               ]}
               onPress={() => onChange(n)}
               activeOpacity={0.7}

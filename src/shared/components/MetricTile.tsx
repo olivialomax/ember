@@ -17,20 +17,35 @@ const TRACKER_META: Record<
 interface MetricTileProps {
   tracker: TrackerKey;
   value: number | null | undefined;
+  drinkLimit?: number | null;
 }
 
-export function MetricTile({ tracker, value }: MetricTileProps) {
+export function MetricTile({ tracker, value, drinkLimit }: MetricTileProps) {
   const meta = TRACKER_META[tracker];
   const hasValue = value != null && !(meta.unit === 'min' && value === 0);
 
   const numericDisplay = hasValue ? String(value) : '—';
 const isScore = tracker === 'mood' || tracker === 'energy' || tracker === 'stress' || tracker === 'drinks' || tracker === 'movement';
 
+  const showArrow = tracker === 'drinks' && drinkLimit != null && value != null && value !== drinkLimit;
+  const arrowUp = showArrow && value > drinkLimit!;
+
   return (
     <View style={styles.tile}>
-      <Text style={[styles.value, isScore && styles.valueScore, { color: hasValue ? meta.color : colors.stone }]}>
-        {numericDisplay}
-      </Text>
+      {showArrow ? (
+        <View style={styles.valueRow}>
+          <Text style={[styles.value, styles.valueScore, { color: meta.color }]}>
+            {numericDisplay}
+          </Text>
+          <Text style={[styles.arrow, { color: arrowUp ? colors.stressRed : colors.sage }]}>
+            {arrowUp ? '↑' : '↓'}
+          </Text>
+        </View>
+      ) : (
+        <Text style={[styles.value, isScore && styles.valueScore, { color: hasValue ? meta.color : colors.stone }]}>
+          {numericDisplay}
+        </Text>
+      )}
       <Text style={[styles.label, isScore && styles.labelScore]}>{meta.label}</Text>
     </View>
   );
@@ -64,5 +79,15 @@ const styles = StyleSheet.create({
   },
   labelScore: {
     marginTop: 8,
+  },
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  arrow: {
+    fontFamily: typography.bodyMedium,
+    fontSize: 14,
+    lineHeight: 32,
   },
 });

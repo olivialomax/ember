@@ -94,6 +94,7 @@ export function useCalendar() {
     setSelectedDate,
     goToPrevMonth,
     goToNextMonth,
+    entriesData: entriesQuery.data ?? [],
     checkinDates,
     eventDates,
     entryForSelected,

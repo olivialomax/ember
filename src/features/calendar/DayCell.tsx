@@ -9,15 +9,22 @@ export interface GridDay {
   isToday: boolean;
 }
 
+const DRINK_DOT_COLORS: Record<'under' | 'at' | 'over', string> = {
+  under: '#7A9E7E', // colors.sage
+  at: '#D4956A',   // colors.amber
+  over: '#C97B7B', // colors.stressRed
+};
+
 interface DayCellProps {
   day: GridDay;
   isSelected: boolean;
   hasCheckin: boolean;
   hasEvent: boolean;
+  drinkStatus: 'under' | 'at' | 'over' | null;
   onPress: () => void;
 }
 
-export function DayCell({ day, isSelected, hasCheckin, hasEvent, onPress }: DayCellProps) {
+export function DayCell({ day, isSelected, hasCheckin, hasEvent, drinkStatus, onPress }: DayCellProps) {
   const circleStyle = isSelected
     ? styles.circleSelected
     : day.isToday
@@ -40,6 +47,9 @@ export function DayCell({ day, isSelected, hasCheckin, hasEvent, onPress }: DayC
       <View style={styles.dotRow}>
         {hasCheckin && <View style={[styles.dot, styles.checkinDot]} />}
         {hasEvent && <View style={[styles.dot, styles.eventDot]} />}
+        {drinkStatus != null && (
+          <View style={[styles.dot, { backgroundColor: DRINK_DOT_COLORS[drinkStatus] }]} />
+        )}
       </View>
     </TouchableOpacity>
   );
