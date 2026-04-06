@@ -14,6 +14,7 @@ const mmkvStorage = {
 
 export type EntryDraft = Partial<Record<TrackerKey, number>> & {
   journal_text?: string;
+  context_tags?: string[] | null;
   date: string;
   synced: boolean;
 };
@@ -21,6 +22,7 @@ export type EntryDraft = Partial<Record<TrackerKey, number>> & {
 interface EntryStoreState {
   draft: EntryDraft;
   setField: (field: TrackerKey | 'journal_text', value: number | string) => void;
+  setTags: (tags: string[] | null) => void;
   resetDraft: (date: string) => void;
   markSynced: () => void;
 }
@@ -37,6 +39,10 @@ export const useEntryStore = create<EntryStoreState>()(
       setField: (field, value) =>
         set((state) => ({
           draft: { ...state.draft, [field]: value, synced: false },
+        })),
+      setTags: (tags) =>
+        set((state) => ({
+          draft: { ...state.draft, context_tags: tags, synced: false },
         })),
       resetDraft: (date) =>
         set({

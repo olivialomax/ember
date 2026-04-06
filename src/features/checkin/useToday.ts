@@ -9,7 +9,7 @@ const todayStr = () => localDateISO();
 
 export function useToday() {
   const { user } = useAuthStore();
-  const { draft, setField, markSynced } = useEntryStore();
+  const { draft, setField, setTags, markSynced } = useEntryStore();
   const queryClient = useQueryClient();
   const today = todayStr();
 
@@ -31,6 +31,7 @@ export function useToday() {
           stress: draft.stress ?? query.data?.stress ?? null,
           movement: draft.movement ?? query.data?.movement ?? null,
           drinks: draft.drinks ?? query.data?.drinks ?? null,
+          context_tags: draft.context_tags ?? query.data?.context_tags ?? null,
           journal_text: draft.journal_text ?? query.data?.journal_text ?? null,
         }
       : {}),
@@ -63,7 +64,12 @@ export function useToday() {
     // Write each field to MMKV first (synchronous, offline-safe)
     (Object.keys(fields) as Array<keyof typeof fields>).forEach((key) => {
       const val = fields[key];
-      if (val != null) setField(key as TrackerKey, val as number);
+      if (val == null) return;
+      if (key === 'context_tags') {
+        setTags(val as string[] | null);
+      } else {
+        setField(key as TrackerKey, val as number);
+      }
     });
     // Single upsert with all fields — mark draft as synced once confirmed
     if (user) {

@@ -9,13 +9,18 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { colors, radius, shadows, spacing, trackerColors, typography } from '../../tokens';
+import { colors, radius, shadows, spacing, typography } from '../../tokens';
 import { ScaleSelector } from '../../shared/components/ScaleSelector';
 import { StepperInput } from '../../shared/components/StepperInput';
+import { TagSelector } from '../../shared/components/TagSelector';
+import { CONTEXT_TAGS } from '../../constants/tags';
 import { useToday } from './useToday';
 import type { CheckInStackParamList } from '../../navigation';
 
 type Nav = NativeStackNavigationProp<CheckInStackParamList, 'CheckInForm'>;
+
+const GOOD_HIGH_COLORS = [colors.stressRed, colors.amber, colors.energyGold, colors.sageLight, colors.sage];
+const GOOD_LOW_COLORS = [colors.sage, colors.sageLight, colors.energyGold, colors.amber, colors.stressRed];
 
 export function CheckInScreen() {
   const navigation = useNavigation<Nav>();
@@ -27,9 +32,10 @@ export function CheckInScreen() {
   const [stress, setStress] = useState<number | null>(entry.stress ?? null);
   const [movement, setMovement] = useState<number | null>(entry.movement ?? null);
   const [drinks, setDrinks] = useState<number | null>(entry.drinks ?? null);
+  const [contextTags, setContextTags] = useState<string[]>(entry.context_tags ?? []);
 
   function handleSubmit() {
-    submitAll({ mood, energy, stress, movement, drinks });
+    submitAll({ mood, energy, stress, movement, drinks, context_tags: contextTags.length > 0 ? contextTags : null });
     navigation.navigate('CheckInSummary');
   }
 
@@ -66,19 +72,19 @@ export function CheckInScreen() {
             label="Mood"
             value={mood}
             onChange={setMood}
-            color={trackerColors.mood}
+            colors={GOOD_HIGH_COLORS}
           />
           <ScaleSelector
             label="Energy"
             value={energy}
             onChange={setEnergy}
-            color={trackerColors.energy}
+            colors={GOOD_HIGH_COLORS}
           />
           <ScaleSelector
             label="Stress"
             value={stress}
             onChange={setStress}
-            color={trackerColors.stress}
+            colors={GOOD_LOW_COLORS}
           />
         </View>
 
@@ -105,6 +111,16 @@ export function CheckInScreen() {
             step={1}
           />
         </View>
+
+        {/* Divider */}
+        <View style={styles.divider} />
+
+        {/* Context tags */}
+        <TagSelector
+          tags={CONTEXT_TAGS}
+          selected={contextTags}
+          onChange={setContextTags}
+        />
       </ScrollView>
 
       {/* Submit */}

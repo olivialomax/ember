@@ -21,6 +21,7 @@ interface DayDetailPanelProps {
   onAddEvent: (title: string, note: string | null) => void;
   onDeleteEvent: (id: string) => void;
   isAdding: boolean;
+  drinkGoal?: number | null;
 }
 
 export function DayDetailPanel({
@@ -32,6 +33,7 @@ export function DayDetailPanel({
   onAddEvent,
   onDeleteEvent,
   isAdding,
+  drinkGoal,
 }: DayDetailPanelProps) {
   const [showForm, setShowForm] = useState(false);
   const [titleInput, setTitleInput] = useState('');
@@ -68,12 +70,24 @@ export function DayDetailPanel({
             <MetricTile tracker="energy" value={entry.energy} />
             <MetricTile tracker="stress" value={entry.stress} />
             <MetricTile tracker="movement" value={entry.movement} />
-            <MetricTile tracker="drinks" value={entry.drinks} />
+            <MetricTile tracker="drinks" value={entry.drinks} drinkLimit={drinkGoal} />
           </View>
           {entry.journal_text != null && entry.journal_text.trim().length > 0 && (
             <View style={styles.journalBlock}>
               <Text style={styles.journalLabel}>Journal</Text>
               <Text style={styles.journalText}>{entry.journal_text}</Text>
+            </View>
+          )}
+          {(entry.context_tags ?? []).length > 0 && (
+            <View style={styles.tagsBlock}>
+              <Text style={styles.tagsLabel}>Context</Text>
+              <View style={styles.tagsRow}>
+                {entry.context_tags!.map((tag) => (
+                  <View key={tag} style={styles.tagChip}>
+                    <Text style={styles.tagText}>{tag}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
           )}
         </>
@@ -237,6 +251,33 @@ const styles = StyleSheet.create({
     color: colors.inkSoft,
     fontStyle: 'italic',
     lineHeight: 13 * 1.5,
+  },
+  tagsBlock: {
+    marginTop: spacing.sm,
+  },
+  tagsLabel: {
+    fontFamily: typography.bodyMedium,
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 1.4,
+    color: colors.stone,
+    marginBottom: spacing.xs,
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  tagChip: {
+    backgroundColor: colors.sagePale,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+  },
+  tagText: {
+    fontFamily: typography.body,
+    fontSize: 12,
+    color: colors.sage,
   },
   // Events
   eventRow: {

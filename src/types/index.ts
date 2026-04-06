@@ -3,6 +3,7 @@ export interface User {
   email: string;
   display_name: string | null;
   drink_limit: number | null;
+  drink_limits_weekly: Record<string, number> | null;
   reminder_enabled: boolean;
   reminder_time: string | null; // ISO time string e.g. "08:00"
   created_at: string;
@@ -17,6 +18,7 @@ export interface Entry {
   stress: number | null; // 1–5
   movement: number | null; // minutes
   drinks: number | null; // count
+  context_tags: string[] | null;
   journal_text: string | null;
   created_at: string;
   updated_at: string;

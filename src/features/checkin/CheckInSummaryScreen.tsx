@@ -11,6 +11,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, radius, shadows, spacing, typography } from '../../tokens';
 import { MetricTile } from '../../shared/components/MetricTile';
 import { useToday } from './useToday';
+import { useProfile } from '../profile';
 import type { CheckInStackParamList } from '../../navigation';
 
 type Nav = NativeStackNavigationProp<CheckInStackParamList, 'CheckInSummary'>;
@@ -32,6 +33,9 @@ function getDailyMessage() {
 export function CheckInSummaryScreen() {
   const navigation = useNavigation<Nav>();
   const { entry } = useToday();
+  const { profile } = useProfile();
+  const todayDow = String(new Date().getDay());
+  const todayDrinkGoal = profile?.drink_limits_weekly?.[todayDow] ?? null;
   const message = getDailyMessage();
 
   // Fade-up animation
@@ -63,9 +67,26 @@ export function CheckInSummaryScreen() {
           <Text style={styles.cardEyebrow}>Today's log</Text>
           <View style={styles.metricsRow}>
             {TRACKERS.map((key) => (
-              <MetricTile key={key} tracker={key} value={entry[key] as number | null} />
+              <MetricTile
+                key={key}
+                tracker={key}
+                value={entry[key] as number | null}
+                drinkLimit={key === 'drinks' ? todayDrinkGoal : undefined}
+              />
             ))}
           </View>
+          {(entry.context_tags ?? []).length > 0 && (
+            <View style={styles.tagsBlock}>
+              <Text style={styles.tagsEyebrow}>Context</Text>
+              <View style={styles.tagsRow}>
+                {entry.context_tags!.map((tag) => (
+                  <View key={tag} style={styles.tagChip}>
+                    <Text style={styles.tagChipText}>{tag}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
         </View>
 
         {/* Done button */}
@@ -120,6 +141,33 @@ const styles = StyleSheet.create({
   metricsRow: {
     flexDirection: 'row',
     gap: spacing.sm,
+  },
+  tagsBlock: {
+    marginTop: spacing.lg,
+  },
+  tagsEyebrow: {
+    fontFamily: typography.bodyMedium,
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.14 * 10,
+    color: colors.stone,
+    marginBottom: spacing.sm,
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  tagChip: {
+    backgroundColor: colors.sagePale,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+  },
+  tagChipText: {
+    fontFamily: typography.body,
+    fontSize: 12.5,
+    color: colors.sage,
   },
   button: {
     backgroundColor: colors.ink,

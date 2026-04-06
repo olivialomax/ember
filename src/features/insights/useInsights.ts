@@ -323,6 +323,107 @@ function computeInsights(entries: Entry[], gratitudeItems: GratitudeItem[]): Ins
       : undefined,
   });
 
+  // 9. Sleep & Mood
+  const poorSleepDays = recent30.filter(
+    (e) => (e.context_tags ?? []).includes('poor sleep') && e.mood !== null
+  );
+  const greatSleepDays = recent30.filter(
+    (e) => (e.context_tags ?? []).includes('great sleep') && e.mood !== null
+  );
+  const poorSleepMood = mean(poorSleepDays.map((e) => e.mood!));
+  const greatSleepMood = mean(greatSleepDays.map((e) => e.mood!));
+  let sleepMoodBody = '';
+  if (poorSleepMood !== null && greatSleepMood !== null) {
+    const diff = greatSleepMood - poorSleepMood;
+    if (diff > 1.0) sleepMoodBody = 'Sleep makes a striking difference for you. Your mood is much higher after great nights.';
+    else if (diff > 0.4) sleepMoodBody = 'You tend to feel noticeably better after good sleep.';
+    else sleepMoodBody = 'Your mood stays fairly resilient even after poor sleep.';
+  } else if (poorSleepMood !== null) {
+    sleepMoodBody = 'Poor sleep days tend to bring your mood down.';
+  } else if (greatSleepMood !== null) {
+    sleepMoodBody = 'Great sleep seems to give your mood a real boost.';
+  }
+  correlations.push({
+    id: 'sleep-mood',
+    title: 'Sleep & Mood',
+    body: sleepMoodBody,
+    accent: colors.blueCalm,
+    visible:
+      (poorSleepDays.length >= 3 || greatSleepDays.length >= 3) &&
+      poorSleepMood !== null &&
+      greatSleepMood !== null,
+    comparison:
+      poorSleepMood !== null && greatSleepMood !== null
+        ? { valueA: greatSleepMood.toFixed(1), labelA: 'great sleep', valueB: poorSleepMood.toFixed(1), labelB: 'poor sleep' }
+        : undefined,
+  });
+
+  // 10. Social Time & Mood
+  const connectedDays = recent30.filter(
+    (e) =>
+      ((e.context_tags ?? []).includes('socialised') ||
+        (e.context_tags ?? []).includes('family time')) &&
+      e.mood !== null
+  );
+  const otherDays = recent30.filter(
+    (e) =>
+      !(e.context_tags ?? []).includes('socialised') &&
+      !(e.context_tags ?? []).includes('family time') &&
+      e.mood !== null
+  );
+  const connectedMood = mean(connectedDays.map((e) => e.mood!));
+  const otherMood = mean(otherDays.map((e) => e.mood!));
+  let socialMoodBody = '';
+  if (connectedMood !== null && otherMood !== null) {
+    const diff = connectedMood - otherMood;
+    if (diff > 0.5) socialMoodBody = 'Connection lifts you. Your mood is meaningfully higher on social days.';
+    else if (diff > 0.2) socialMoodBody = 'You tend to feel a little brighter on days you spend time with people.';
+    else if (diff >= -0.2) socialMoodBody = 'Your mood stays consistent regardless of social time.';
+    else socialMoodBody = 'You seem to recharge more on quieter days.';
+  }
+  correlations.push({
+    id: 'social-mood',
+    title: 'Social Time & Mood',
+    body: socialMoodBody,
+    accent: colors.sage,
+    visible: connectedDays.length >= 3 && otherDays.length >= 3,
+    comparison:
+      connectedMood !== null && otherMood !== null
+        ? { valueA: connectedMood.toFixed(1), labelA: 'social days', valueB: otherMood.toFixed(1), labelB: 'other days' }
+        : undefined,
+  });
+
+  // 11. Stressful Events & Energy
+  const stressEventDays = recent30.filter(
+    (e) => (e.context_tags ?? []).includes('stressful event') && e.energy !== null
+  );
+  const calmDays = recent30.filter(
+    (e) =>
+      !(e.context_tags ?? []).includes('stressful event') &&
+      !(e.context_tags ?? []).includes('sick') &&
+      e.energy !== null
+  );
+  const stressEventEnergy = mean(stressEventDays.map((e) => e.energy!));
+  const calmEnergy = mean(calmDays.map((e) => e.energy!));
+  let stressEventBody = '';
+  if (stressEventEnergy !== null && calmEnergy !== null) {
+    const diff = calmEnergy - stressEventEnergy;
+    if (diff > 0.6) stressEventBody = 'Stressful events seem to drain you. Your energy dips noticeably on those days.';
+    else if (diff > 0.2) stressEventBody = 'Your energy tends to be a little lower when something stressful is happening.';
+    else stressEventBody = 'You hold your energy pretty steadily even through stressful events.';
+  }
+  correlations.push({
+    id: 'stress-event-energy',
+    title: 'Stressful Events & Energy',
+    body: stressEventBody,
+    accent: colors.stressRed,
+    visible: stressEventDays.length >= 3 && calmDays.length >= 3,
+    comparison:
+      stressEventEnergy !== null && calmEnergy !== null
+        ? { valueA: calmEnergy.toFixed(1), labelA: 'calm days', valueB: stressEventEnergy.toFixed(1), labelB: 'stressful days' }
+        : undefined,
+  });
+
   return { weekAvg, avg14, series, correlations, hasEnoughData, daysLogged };
 }
 
