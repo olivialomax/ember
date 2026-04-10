@@ -120,6 +120,33 @@ export function SettingsScreen() {
   const { enabled: notifEnabled, hour, minute, setEnabled, setTime } = useNotificationStore();
   const [timePickerVisible, setTimePickerVisible] = useState(false);
 
+  const cycleEnabled = profile?.cycle_tracker_enabled ?? false;
+  const [cycleLength, setCycleLength] = useState(profile?.average_cycle_length ?? 28);
+
+  useEffect(() => {
+    if (profile?.average_cycle_length != null) {
+      setCycleLength(profile.average_cycle_length);
+    }
+  }, [profile?.average_cycle_length]);
+
+  function handleToggleCycleTracker(val: boolean) {
+    updateProfileField({ cycle_tracker_enabled: val });
+  }
+
+  function incrementCycleLength() {
+    if (cycleLength >= 45) return;
+    const next = cycleLength + 1;
+    setCycleLength(next);
+    updateProfileField({ average_cycle_length: next });
+  }
+
+  function decrementCycleLength() {
+    if (cycleLength <= 21) return;
+    const next = cycleLength - 1;
+    setCycleLength(next);
+    updateProfileField({ average_cycle_length: next });
+  }
+
   async function handleToggleNotifications(val: boolean) {
     if (val) {
       const granted = await requestPermission();
@@ -165,6 +192,12 @@ export function SettingsScreen() {
 
   return (
     <ScreenWrapper>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.eyebrow}>Settings</Text>
@@ -357,6 +390,49 @@ export function SettingsScreen() {
         </TouchableWithoutFeedback>
       </Modal>
 
+      {/* Cycle Tracker */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>Cycle tracker</Text>
+        <View style={styles.actionList}>
+          <View style={styles.reminderRow}>
+            <Text style={styles.reminderLabel}>Track your cycle</Text>
+            <Switch
+              value={cycleEnabled}
+              onValueChange={handleToggleCycleTracker}
+              trackColor={{ false: colors.cream, true: colors.roseLight }}
+              thumbColor={cycleEnabled ? colors.rose : colors.stone}
+            />
+          </View>
+          {cycleEnabled && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.reminderRow}>
+                <Text style={styles.reminderLabel}>Average cycle length</Text>
+                <View style={styles.cycleStepper}>
+                  <TouchableOpacity
+                    onPress={decrementCycleLength}
+                    disabled={cycleLength <= 21}
+                    style={[styles.cycleStepBtn, cycleLength <= 21 && styles.dayBtnDisabled]}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.cycleStepText, cycleLength <= 21 && styles.dayBtnTextDisabled]}>−</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.cycleLengthValue}>{cycleLength} days</Text>
+                  <TouchableOpacity
+                    onPress={incrementCycleLength}
+                    disabled={cycleLength >= 45}
+                    style={[styles.cycleStepBtn, cycleLength >= 45 && styles.dayBtnDisabled]}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.cycleStepText, cycleLength >= 45 && styles.dayBtnTextDisabled]}>+</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </>
+          )}
+        </View>
+      </View>
+
       {/* Actions */}
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Account</Text>
@@ -382,11 +458,18 @@ export function SettingsScreen() {
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
+      </ScrollView>
     </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 90,
+  },
   header: {
     paddingTop: 52,
     paddingHorizontal: spacing.xxxl,
@@ -666,6 +749,34 @@ const styles = StyleSheet.create({
     color: colors.ink,
     lineHeight: 20,
     minWidth: 20,
+    textAlign: 'center',
+  },
+  cycleStepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  cycleStepBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.md,
+    backgroundColor: colors.cream,
+    borderWidth: 1,
+    borderColor: 'rgba(44,40,37,0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cycleStepText: {
+    fontFamily: typography.display,
+    fontSize: 18,
+    color: colors.ink,
+    lineHeight: 22,
+  },
+  cycleLengthValue: {
+    fontFamily: typography.bodyMedium,
+    fontSize: 14,
+    color: colors.rose,
+    minWidth: 56,
     textAlign: 'center',
   },
   errorContainer: {
