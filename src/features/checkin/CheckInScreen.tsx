@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,9 @@ import { StepperInput } from '../../shared/components/StepperInput';
 import { TagSelector } from '../../shared/components/TagSelector';
 import { CONTEXT_TAGS } from '../../constants/tags';
 import { useToday } from './useToday';
+import { useProfile } from '../profile';
+import { useCycleLog } from '../cycle/useCycleLog';
+import type { FlowLevel } from '../cycle/types';
 import type { CheckInStackParamList } from '../../navigation';
 
 type Nav = NativeStackNavigationProp<CheckInStackParamList, 'CheckInForm'>;
@@ -24,9 +27,19 @@ type Nav = NativeStackNavigationProp<CheckInStackParamList, 'CheckInForm'>;
 const GOOD_HIGH_COLORS = [colors.stressRed, colors.amber, colors.energyGold, colors.sageLight, colors.sage];
 const GOOD_LOW_COLORS = [colors.sage, colors.sageLight, colors.energyGold, colors.amber, colors.stressRed];
 
+const FLOW_OPTIONS: { value: FlowLevel; label: string }[] = [
+  { value: 'spotting', label: 'Spotting' },
+  { value: 'light', label: 'Light' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'heavy', label: 'Heavy' },
+];
+
 export function CheckInScreen() {
   const navigation = useNavigation<Nav>();
   const { entry, submitAll, isSyncing } = useToday();
+  const { profile } = useProfile();
+  const { log: cycleLog, submitLog: submitCycleLog } = useCycleLog();
+  const cycleEnabled = profile?.cycle_tracker_enabled ?? false;
 
   // Initialise local state from any existing entry values
   const [mood, setMood] = useState<number | null>(entry.mood ?? null);
@@ -35,7 +48,15 @@ export function CheckInScreen() {
   const [movement, setMovement] = useState<number | null>(entry.movement ?? null);
   const [drinks, setDrinks] = useState<number | null>(entry.drinks ?? null);
   const [contextTags, setContextTags] = useState<string[]>(entry.context_tags ?? []);
+  const [cycleFlow, setCycleFlow] = useState<FlowLevel | null>(null);
   const [showScrollHint, setShowScrollHint] = useState(true);
+
+  // Pre-fill flow from today's existing cycle log once loaded
+  useEffect(() => {
+    if (cycleLog?.flow && cycleLog.flow !== 'none') {
+      setCycleFlow(cycleLog.flow);
+    }
+  }, [cycleLog?.flow]);
 
   function handleScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
     const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
@@ -45,6 +66,9 @@ export function CheckInScreen() {
 
   function handleSubmit() {
     submitAll({ mood, energy, stress, movement, drinks, context_tags: contextTags.length > 0 ? contextTags : null });
+    if (cycleEnabled && cycleFlow) {
+      submitCycleLog({ flow: cycleFlow, symptoms: [], notes: '' });
+    }
     navigation.navigate('CheckInSummary');
   }
 
@@ -133,6 +157,33 @@ export function CheckInScreen() {
           selected={contextTags}
           onChange={setContextTags}
         />
+
+        {/* Cycle flow — only shown when tracking is enabled */}
+        {cycleEnabled && (
+          <>
+            <View style={styles.divider} />
+            <View style={styles.cycleSection}>
+              <Text style={styles.cycleLabel}>Today's flow</Text>
+              <View style={styles.flowRow}>
+                {FLOW_OPTIONS.map(({ value, label }) => {
+                  const selected = cycleFlow === value;
+                  return (
+                    <TouchableOpacity
+                      key={value}
+                      style={[styles.flowPill, selected && styles.flowPillSelected]}
+                      onPress={() => setCycleFlow(selected ? null : value)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.flowPillText, selected && styles.flowPillTextSelected]}>
+                        {label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          </>
+        )}
       </ScrollView>
       {showScrollHint && (
         <View style={styles.scrollFade} pointerEvents="none">
@@ -313,5 +364,41 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.sm,
     opacity: 0.7,
+  },
+  cycleSection: {
+    marginBottom: spacing.sm,
+  },
+  cycleLabel: {
+    fontFamily: typography.bodyMedium,
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.14 * 10,
+    color: colors.stone,
+    marginBottom: spacing.md,
+  },
+  flowRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  flowPill: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.full,
+    backgroundColor: colors.cream,
+    borderWidth: 1,
+    borderColor: 'rgba(44,40,37,0.10)',
+  },
+  flowPillSelected: {
+    backgroundColor: colors.rosePale,
+    borderColor: colors.rose,
+  },
+  flowPillText: {
+    fontFamily: typography.bodyMedium,
+    fontSize: 13,
+    color: colors.stone,
+  },
+  flowPillTextSelected: {
+    color: colors.rose,
   },
 });

@@ -16,7 +16,7 @@ import { TodayCard } from '../checkin/TodayCard';
 import { StreakCard } from '../streaks/StreakCard';
 import { useStreaks } from '../streaks/useStreaks';
 import { useAuthStore } from '../auth/useAuthStore';
-import { useProfileStore } from '../profile';
+import { useProfileStore, useProfile } from '../profile';
 import { useInsights } from '../insights/useInsights';
 import { MetricTile } from '../../shared/components/MetricTile';
 import { colors, radius, shadows, spacing, typography } from '../../tokens';
@@ -48,6 +48,7 @@ export function HomeScreen() {
   const tabNavigation = useNavigation<TabNavProp>();
   const { user } = useAuthStore();
   const { avatar } = useProfileStore();
+  const { profile } = useProfile();
   const { streaks } = useStreaks();
   const { items: gratitudeItems, meetsMinimum: gratitudeMet } = useGratitude();
   const { weekAvg, series } = useInsights();
