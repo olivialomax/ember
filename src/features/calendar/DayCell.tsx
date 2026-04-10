@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors, radius, spacing, typography } from '../../tokens';
+import { FlowLevel } from '../cycle/types';
 
 export interface GridDay {
   date: string;
@@ -9,44 +10,59 @@ export interface GridDay {
   isToday: boolean;
 }
 
+// Rose ring border color per flow level — alpha encodes intensity
+const FLOW_RING_COLORS: Record<FlowLevel, string> = {
+  none: 'transparent',
+  spotting: 'rgba(196, 132, 154, 0.30)',
+  light: 'rgba(196, 132, 154, 0.50)',
+  medium: 'rgba(196, 132, 154, 0.75)',
+  heavy: 'rgba(196, 132, 154, 1.00)',
+};
+
 const DRINK_DOT_COLORS: Record<'under' | 'at' | 'over', string> = {
-  under: '#7A9E7E', // colors.sage
-  at: '#D4956A',   // colors.amber
-  over: '#C97B7B', // colors.stressRed
+  under: colors.sage,
+  at: colors.amber,
+  over: colors.stressRed,
 };
 
 interface DayCellProps {
   day: GridDay;
   isSelected: boolean;
   hasCheckin: boolean;
-  hasEvent: boolean;
+  flowLevel: FlowLevel | null;
   drinkStatus: 'under' | 'at' | 'over' | null;
   onPress: () => void;
 }
 
-export function DayCell({ day, isSelected, hasCheckin, hasEvent, drinkStatus, onPress }: DayCellProps) {
+export function DayCell({ day, isSelected, hasCheckin, flowLevel, drinkStatus, onPress }: DayCellProps) {
+  const ringBorderColor = (flowLevel && flowLevel !== 'none')
+    ? FLOW_RING_COLORS[flowLevel]
+    : 'transparent';
+
   const circleStyle = isSelected
     ? styles.circleSelected
-    : day.isToday
-    ? styles.circleToday
+    : (day.isToday || hasCheckin)
+    ? styles.circleCheckin
     : null;
 
   const textStyle = isSelected
     ? styles.numberSelected
     : day.isToday
     ? styles.numberToday
-    : !day.isCurrentMonth
-    ? styles.numberOverflow
     : styles.numberDefault;
 
   return (
-    <TouchableOpacity style={styles.cell} onPress={onPress} activeOpacity={0.7}>
-      <View style={[styles.circle, circleStyle]}>
-        <Text style={[styles.number, textStyle]}>{day.dayNumber}</Text>
+    <TouchableOpacity
+      style={[styles.cell, !day.isCurrentMonth && styles.cellOverflow]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={[styles.ring, { borderColor: ringBorderColor }]}>
+        <View style={[styles.circle, circleStyle]}>
+          <Text style={[styles.number, textStyle]}>{day.dayNumber}</Text>
+        </View>
       </View>
       <View style={styles.dotRow}>
-        {hasCheckin && <View style={[styles.dot, styles.checkinDot]} />}
-        {hasEvent && <View style={[styles.dot, styles.eventDot]} />}
         {drinkStatus != null && (
           <View style={[styles.dot, { backgroundColor: DRINK_DOT_COLORS[drinkStatus] }]} />
         )}
@@ -61,6 +77,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.xs,
   },
+  cellOverflow: {
+    opacity: 0.35,
+  },
+  ring: {
+    width: 34,
+    height: 34,
+    borderRadius: radius.full,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   circle: {
     width: 28,
     height: 28,
@@ -68,7 +95,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  circleToday: {
+  circleCheckin: {
     backgroundColor: colors.sagePale,
   },
   circleSelected: {
@@ -88,26 +115,15 @@ const styles = StyleSheet.create({
   numberSelected: {
     color: colors.warmWhite,
   },
-  numberOverflow: {
-    color: colors.stone,
-    opacity: 0.35,
-  },
   dotRow: {
     flexDirection: 'row',
-    gap: 3,
     justifyContent: 'center',
-    marginTop: 3,
+    marginTop: 2,
     height: 5,
   },
   dot: {
     width: 4,
     height: 4,
     borderRadius: 2,
-  },
-  checkinDot: {
-    backgroundColor: colors.sage,
-  },
-  eventDot: {
-    backgroundColor: colors.amber,
   },
 });

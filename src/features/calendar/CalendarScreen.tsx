@@ -19,6 +19,7 @@ export function CalendarScreen() {
     entriesData,
     checkinDates,
     eventDates,
+    cycleLogs,
     entryForSelected,
     eventsForSelected,
     gratitudeForSelected,
@@ -61,7 +62,7 @@ export function CalendarScreen() {
               month={month}
               selectedDate={selectedDate}
               checkinDates={checkinDates}
-              eventDates={eventDates}
+              cycleLogs={cycleLogs}
               drinkStatusDates={drinkStatusDates}
               onSelectDate={setSelectedDate}
               onPrevMonth={goToPrevMonth}

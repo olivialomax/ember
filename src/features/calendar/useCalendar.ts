@@ -4,6 +4,8 @@ import { useAuthStore } from '../auth/useAuthStore';
 import { getRecentEntries } from '../../services/entries';
 import { getLifeEventsForMonth, addLifeEvent, deleteLifeEvent } from '../../services/lifeEvents';
 import { getGratitudeItems } from '../../services/gratitude';
+import { getRecentCycleLogs } from '../../services/cycle';
+import { FlowLevel } from '../cycle/types';
 import { LifeEvent, GratitudeItem } from '../../types';
 import { localDateISO } from '../../shared/utils/date';
 
@@ -65,9 +67,21 @@ export function useCalendar() {
     staleTime: 2 * 60 * 1000,
   });
 
+  const cycleLogsQuery = useQuery({
+    queryKey: ['recent-cycle-logs', user?.id],
+    queryFn: () => getRecentCycleLogs(user!.id, 60),
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const checkinDates = new Set((entriesQuery.data ?? []).map((e) => e.date));
   const allEvents = eventsQuery.data ?? [];
   const eventDates = new Set(allEvents.map((e) => e.date));
+
+  const cycleLogs = new Map<string, FlowLevel>();
+  for (const log of cycleLogsQuery.data ?? []) {
+    if (log.flow && log.flow !== 'none') cycleLogs.set(log.date, log.flow);
+  }
   const eventsForSelected = allEvents.filter((e) => e.date === selectedDate);
   const entryForSelected = (entriesQuery.data ?? []).find((e) => e.date === selectedDate) ?? null;
   const gratitudeForSelected = gratitudeQuery.data ?? [];
@@ -97,6 +111,7 @@ export function useCalendar() {
     entriesData: entriesQuery.data ?? [],
     checkinDates,
     eventDates,
+    cycleLogs,
     entryForSelected,
     eventsForSelected,
     gratitudeForSelected,

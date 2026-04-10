@@ -3,13 +3,14 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors, spacing, typography } from '../../tokens';
 import { DayCell, GridDay } from './DayCell';
 import { localDateISO } from '../../shared/utils/date';
+import { FlowLevel } from '../cycle/types';
 
 interface CalendarGridProps {
   year: number;
   month: number;
   selectedDate: string;
   checkinDates: Set<string>;
-  eventDates: Set<string>;
+  cycleLogs: Map<string, FlowLevel>;
   drinkStatusDates: Record<string, 'under' | 'at' | 'over'>;
   onSelectDate: (date: string) => void;
   onPrevMonth: () => void;
@@ -69,7 +70,7 @@ export function CalendarGrid({
   month,
   selectedDate,
   checkinDates,
-  eventDates,
+  cycleLogs,
   drinkStatusDates,
   onSelectDate,
   onPrevMonth,
@@ -119,7 +120,7 @@ export function CalendarGrid({
               day={day}
               isSelected={day.date === selectedDate}
               hasCheckin={checkinDates.has(day.date)}
-              hasEvent={eventDates.has(day.date)}
+              flowLevel={cycleLogs.get(day.date) ?? null}
               drinkStatus={drinkStatusDates[day.date] ?? null}
               onPress={() => onSelectDate(day.date)}
             />
