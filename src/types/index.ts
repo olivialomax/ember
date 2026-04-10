@@ -6,6 +6,9 @@ export interface User {
   drink_limits_weekly: Record<string, number> | null;
   reminder_enabled: boolean;
   reminder_time: string | null; // ISO time string e.g. "08:00"
+  cycle_tracker_enabled: boolean;
+  average_cycle_length: number; // default 28
+  last_period_start: string | null; // ISO date e.g. "2026-04-01"
   created_at: string;
 }
 
@@ -30,6 +33,14 @@ export interface GratitudeItem {
   date: string; // ISO date string
   content: string;
   created_at: string;
+}
+
+export interface JournalEntry {
+  id: string;
+  user_id: string;
+  date: string;       // ISO date string e.g. "2026-04-10"
+  body: string;
+  created_at: string; // full ISO timestamp — used for time display
 }
 
 export interface StreakData {
