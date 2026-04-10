@@ -12,6 +12,7 @@ import { ScreenWrapper } from '../../shared/components/ScreenWrapper';
 import { JournalEntryCard } from './JournalEntryCard';
 import { useJournal } from './useJournal';
 import { colors, radius, shadows, spacing, typography } from '../../tokens';
+import { JournalEntry } from '../../types';
 
 export function JournalScreen() {
   const {
@@ -24,6 +25,13 @@ export function JournalScreen() {
     isLoadingToday,
     groupedHistory,
     isLoadingHistory,
+    editingId,
+    editBody,
+    setEditBody,
+    startEdit,
+    cancelEdit,
+    handleSaveEdit,
+    isSavingEdit,
   } = useJournal();
 
   const today = new Date()
@@ -31,6 +39,54 @@ export function JournalScreen() {
     .toUpperCase();
 
   const historyDates = Object.keys(groupedHistory);
+
+  function renderTodayEntry(entry: JournalEntry, index: number) {
+    const isEditing = editingId === entry.id;
+
+    return (
+      <View key={entry.id}>
+        {index > 0 && <View style={styles.entryDivider} />}
+        {isEditing ? (
+          <View style={styles.inlineEditor}>
+            <TextInput
+              style={styles.editInput}
+              value={editBody}
+              onChangeText={setEditBody}
+              multiline
+              autoFocus
+              textAlignVertical="top"
+              scrollEnabled={false}
+            />
+            <View style={styles.editActions}>
+              <TouchableOpacity onPress={cancelEdit} style={styles.cancelButton}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.saveButton, (!editBody.trim() || isSavingEdit) && styles.saveButtonDisabled]}
+                onPress={handleSaveEdit}
+                disabled={!editBody.trim() || isSavingEdit}
+                activeOpacity={0.8}
+              >
+                {isSavingEdit ? (
+                  <ActivityIndicator size="small" color={colors.warmWhite} />
+                ) : (
+                  <Text style={styles.saveButtonText}>Save</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          <TouchableOpacity
+            onPress={() => startEdit(entry.id, entry.body)}
+            activeOpacity={0.7}
+          >
+            <JournalEntryCard entry={entry} maxLines={0} />
+            <Text style={styles.editHint}>Tap to edit</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  }
 
   return (
     <ScreenWrapper>
@@ -60,12 +116,7 @@ export function JournalScreen() {
               <ActivityIndicator color={colors.stone} style={styles.loadingInCard} />
             ) : todayEntries.length > 0 ? (
               <View style={styles.todayEntries}>
-                {todayEntries.map((entry, index) => (
-                  <View key={entry.id}>
-                    {index > 0 && <View style={styles.entryDivider} />}
-                    <JournalEntryCard entry={entry} maxLines={0} />
-                  </View>
-                ))}
+                {todayEntries.map((entry, index) => renderTodayEntry(entry, index))}
                 <View style={styles.composeDivider} />
               </View>
             ) : null}
@@ -198,6 +249,40 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(44,40,37,0.07)',
     marginTop: spacing.md,
     marginBottom: spacing.lg,
+  },
+  editHint: {
+    fontFamily: typography.body,
+    fontSize: 10,
+    color: colors.stone,
+    opacity: 0.45,
+    textAlign: 'right',
+    marginTop: -spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  inlineEditor: {
+    paddingVertical: spacing.sm,
+  },
+  editInput: {
+    fontFamily: typography.displayItalic,
+    fontSize: 16,
+    color: colors.ink,
+    lineHeight: 16 * 1.7,
+    minHeight: 80,
+  },
+  editActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  cancelButton: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  cancelButtonText: {
+    fontFamily: typography.bodyMedium,
+    fontSize: 13,
+    color: colors.stone,
   },
   input: {
     fontFamily: typography.displayItalic,

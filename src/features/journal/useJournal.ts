@@ -5,6 +5,7 @@ import {
   getJournalEntries,
   getRecentJournalEntries,
   addJournalEntry,
+  updateJournalEntry,
   deleteJournalEntry,
 } from '../../services/journal';
 import { JournalEntry } from '../../types';
@@ -18,6 +19,8 @@ export function useJournal() {
   const today = todayStr();
 
   const [draftText, setDraftText] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editBody, setEditBody] = useState('');
 
   const todayQuery = useQuery({
     queryKey: ['journal-today', user?.id, today],
@@ -51,6 +54,15 @@ export function useJournal() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, body }: { id: string; body: string }) => updateJournalEntry(id, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['journal-today', user?.id, today] });
+      setEditingId(null);
+      setEditBody('');
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteJournalEntry(id),
     onSuccess: () => {
@@ -63,6 +75,21 @@ export function useJournal() {
     const trimmed = draftText.trim();
     if (!trimmed) return;
     addMutation.mutate(trimmed);
+  }
+
+  function startEdit(id: string, currentBody: string) {
+    setEditingId(id);
+    setEditBody(currentBody);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditBody('');
+  }
+
+  function handleSaveEdit() {
+    if (!editingId || !editBody.trim()) return;
+    updateMutation.mutate({ id: editingId, body: editBody });
   }
 
   const wordCount = draftText.trim() === '' ? 0 : draftText.trim().split(/\s+/).length;
@@ -78,5 +105,12 @@ export function useJournal() {
     groupedHistory: historyQuery.data ?? {},
     isLoadingHistory: historyQuery.isLoading,
     deleteEntry: (id: string) => deleteMutation.mutate(id),
+    editingId,
+    editBody,
+    setEditBody,
+    startEdit,
+    cancelEdit,
+    handleSaveEdit,
+    isSavingEdit: updateMutation.isPending,
   };
 }
