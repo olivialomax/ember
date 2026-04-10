@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -33,6 +35,13 @@ export function CheckInScreen() {
   const [movement, setMovement] = useState<number | null>(entry.movement ?? null);
   const [drinks, setDrinks] = useState<number | null>(entry.drinks ?? null);
   const [contextTags, setContextTags] = useState<string[]>(entry.context_tags ?? []);
+  const [showScrollHint, setShowScrollHint] = useState(true);
+
+  function handleScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
+    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+    const distanceFromBottom = contentSize.height - layoutMeasurement.height - contentOffset.y;
+    setShowScrollHint(distanceFromBottom > 40);
+  }
 
   function handleSubmit() {
     submitAll({ mood, energy, stress, movement, drinks, context_tags: contextTags.length > 0 ? contextTags : null });
@@ -55,11 +64,14 @@ export function CheckInScreen() {
         </TouchableOpacity>
       </View>
 
+      <View style={styles.scrollContainer}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         <Text style={styles.heading}>How was your day?</Text>
         <Text style={styles.subheading}>
@@ -122,6 +134,15 @@ export function CheckInScreen() {
           onChange={setContextTags}
         />
       </ScrollView>
+      {showScrollHint && (
+        <View style={styles.scrollFade} pointerEvents="none">
+          <View style={styles.scrollFadeLayer1} />
+          <View style={styles.scrollFadeLayer2} />
+          <View style={styles.scrollFadeLayer3} />
+          <Text style={styles.scrollChevron}>›</Text>
+        </View>
+      )}
+      </View>
 
       {/* Submit */}
       <View style={styles.footer}>
@@ -179,8 +200,55 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.stone,
   },
+  scrollContainer: {
+    flex: 1,
+  },
   scroll: {
     flex: 1,
+  },
+  scrollFade: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: 6,
+  },
+  scrollFadeLayer1: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 56,
+    backgroundColor: colors.cream,
+    opacity: 0.3,
+  },
+  scrollFadeLayer2: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 36,
+    backgroundColor: colors.cream,
+    opacity: 0.45,
+  },
+  scrollFadeLayer3: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 20,
+    backgroundColor: colors.cream,
+    opacity: 0.65,
+  },
+  scrollChevron: {
+    fontFamily: typography.body,
+    fontSize: 14,
+    color: colors.stone,
+    opacity: 0.5,
+    transform: [{ rotate: '90deg' }],
   },
   content: {
     paddingHorizontal: spacing.xxxl,
