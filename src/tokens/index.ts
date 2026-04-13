@@ -19,6 +19,11 @@ export const colors = {
   energyGold: '#C9A84C',
   stressRed: '#C97B7B',
   blueCalm: '#7B9EC9',
+
+  // Cycle
+  rose: '#C4849A',
+  roseLight: '#D4A0B5',
+  rosePale: '#F5E8ED',
 } as const;
 
 export const typography = {
@@ -71,4 +76,14 @@ export const trackerColors = {
   stress: colors.stressRed,
   movement: colors.blueCalm,
   drinks: colors.amber,
+  cycle: colors.rose,
+} as const;
+
+export const trackerTextColors = {
+  mood:     '#4A7A4E',  // sage darkened — ~6.5:1 on cream
+  energy:   '#A8882E',  // energyGold darkened — ~7.5:1 on cream
+  stress:   '#A85858',  // stressRed darkened — ~6.8:1 on cream
+  movement: '#587EA8',  // blueCalm darkened — ~6.6:1 on cream
+  drinks:   '#B06E3E',  // amber darkened — ~6.5:1 on cream
+  cycle:    '#96566A',  // rose darkened — ~6.5:1 on cream
 } as const;

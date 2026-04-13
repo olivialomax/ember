@@ -11,6 +11,7 @@ import { CheckInScreen, CheckInSummaryScreen } from '../features/checkin';
 import { SettingsScreen } from '../features/settings';
 import { JournalScreen } from '../features/journal';
 import { GratitudeModal } from '../features/gratitude';
+import { CycleLogModal } from '../features/cycle';
 import { InsightsScreen } from '../features/insights';
 import { CalendarScreen } from '../features/calendar';
 
@@ -107,6 +108,7 @@ export function AppNavigator({ isAuthenticated }: { isAuthenticated: boolean }) 
         <RootStack.Group screenOptions={{ presentation: 'modal', headerShown: false }}>
           <RootStack.Screen name="CheckIn" component={CheckInStackNavigator} />
           <RootStack.Screen name="Gratitude" component={GratitudeModal} />
+          <RootStack.Screen name="CycleLog" component={CycleLogModal} />
         </RootStack.Group>
       </RootStack.Navigator>
     </NavigationContainer>

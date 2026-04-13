@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, radius, shadows, spacing, typography } from '../../tokens';
+import { colors, radius, shadows, spacing, trackerTextColors, typography } from '../../tokens';
 import { TrackerKey } from '../../types';
 import { Sparkline } from '../../shared/components/Sparkline';
 
 const TRACKER_META: Record<
   TrackerKey,
-  { label: string; unit?: string; color: string }
+  { label: string; unit?: string; color: string; textColor: string }
 > = {
-  mood:     { label: 'Mood',     color: colors.sage },
-  energy:   { label: 'Energy',   color: colors.energyGold },
-  stress:   { label: 'Stress',   color: colors.stressRed },
-  movement: { label: 'Movement', color: colors.blueCalm, unit: 'min' },
-  drinks:   { label: 'Drinks',   color: colors.amber },
+  mood:     { label: 'Mood',     color: colors.sage,       textColor: trackerTextColors.mood },
+  energy:   { label: 'Energy',   color: colors.energyGold, textColor: trackerTextColors.energy },
+  stress:   { label: 'Stress',   color: colors.stressRed,  textColor: trackerTextColors.stress },
+  movement: { label: 'Movement', color: colors.blueCalm,   textColor: trackerTextColors.movement, unit: 'min' },
+  drinks:   { label: 'Drinks',   color: colors.amber,      textColor: trackerTextColors.drinks },
 };
 
 interface TrendCardProps {
@@ -30,7 +30,7 @@ export function TrendCard({ tracker, series, avg }: TrendCardProps) {
       <View style={styles.row}>
         {/* Left: avg value + tracker name (stacked) */}
         <View style={styles.leftCol}>
-          <Text style={[styles.avgValue, { color: avg !== null ? meta.color : colors.stone }]}>
+          <Text style={[styles.avgValue, { color: avg !== null ? meta.textColor : colors.stone }]}>
             {avg !== null ? String(avg) : '—'}
           </Text>
           {avg !== null && meta.unit && (

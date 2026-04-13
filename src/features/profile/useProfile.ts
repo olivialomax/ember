@@ -15,7 +15,7 @@ export function useProfile() {
   });
 
   const { mutate: update, isPending: isUpdating } = useMutation({
-    mutationFn: (fields: Partial<Pick<User, 'drink_limit' | 'drink_limits_weekly' | 'display_name' | 'reminder_enabled' | 'reminder_time'>>) =>
+    mutationFn: (fields: Partial<Pick<User, 'drink_limit' | 'drink_limits_weekly' | 'display_name' | 'reminder_enabled' | 'reminder_time' | 'cycle_tracker_enabled' | 'average_cycle_length' | 'last_period_start'>>) =>
       updateProfile(user!.id, fields),
     onSuccess: (updated) => {
       queryClient.setQueryData(['profile', user?.id], updated);

@@ -16,13 +16,13 @@ export function CorrelationCard({ insight }: CorrelationCardProps) {
         {insight.comparison && (
           <View style={styles.comparisonRow}>
             <View style={styles.comparisonCol}>
-              <Text style={[styles.compVal, { color: insight.accent }]}>
+              <Text style={[styles.compVal, { color: insight.accentText ?? insight.accent }]}>
                 {insight.comparison.valueA}
               </Text>
               <Text style={styles.compLabel}>{insight.comparison.labelA}</Text>
             </View>
             <View style={styles.comparisonCol}>
-              <Text style={[styles.compVal, { color: insight.accent }]}>
+              <Text style={[styles.compVal, { color: insight.accentText ?? insight.accent }]}>
                 {insight.comparison.valueB}
               </Text>
               <Text style={styles.compLabel}>{insight.comparison.labelB}</Text>

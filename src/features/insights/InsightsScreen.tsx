@@ -8,7 +8,7 @@ import { useStreaks } from '../streaks/useStreaks';
 import { useInsights } from './useInsights';
 import { TrendCard } from './TrendCard';
 import { CorrelationCard } from './CorrelationCard';
-import { colors, radius, shadows, spacing, typography } from '../../tokens';
+import { colors, radius, shadows, spacing, trackerTextColors, typography } from '../../tokens';
 import { TrackerKey } from '../../types';
 
 const TRACKERS: TrackerKey[] = ['mood', 'energy', 'stress', 'movement', 'drinks'];
@@ -58,9 +58,9 @@ export function InsightsScreen() {
               <Text style={styles.sectionTitle}>Streaks</Text>
             </View>
             <View style={styles.streaksRow}>
-              <StreakCard label="Mindful"   count={streaks.mindful_streak}   accentColor={colors.sage} />
-              <StreakCard label="Journal"   count={streaks.journal_streak}   accentColor={colors.energyGold} />
-              <StreakCard label="Gratitude" count={streaks.gratitude_streak} accentColor={colors.amber} />
+              <StreakCard label="Mindful"   count={streaks.mindful_streak}   accentColor={colors.sage}       textColor={trackerTextColors.mood} />
+              <StreakCard label="Journal"   count={streaks.journal_streak}   accentColor={colors.energyGold} textColor={trackerTextColors.energy} />
+              <StreakCard label="Gratitude" count={streaks.gratitude_streak} accentColor={colors.amber}      textColor={trackerTextColors.drinks} />
             </View>
           </View>
         </FadeUpSection>

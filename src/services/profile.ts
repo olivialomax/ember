@@ -13,7 +13,7 @@ export async function getProfile(userId: string): Promise<User | null> {
 
 export async function updateProfile(
   userId: string,
-  fields: Partial<Pick<User, 'drink_limit' | 'drink_limits_weekly' | 'display_name' | 'reminder_enabled' | 'reminder_time'>>
+  fields: Partial<Pick<User, 'drink_limit' | 'drink_limits_weekly' | 'display_name' | 'reminder_enabled' | 'reminder_time' | 'cycle_tracker_enabled' | 'average_cycle_length' | 'last_period_start'>>
 ): Promise<User> {
   const { data, error } = await supabase
     .from('profiles')

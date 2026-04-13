@@ -19,7 +19,7 @@ import { useAuthStore } from '../auth/useAuthStore';
 import { useProfileStore, useProfile } from '../profile';
 import { useInsights } from '../insights/useInsights';
 import { MetricTile } from '../../shared/components/MetricTile';
-import { colors, radius, shadows, spacing, typography } from '../../tokens';
+import { colors, radius, shadows, spacing, trackerTextColors, typography } from '../../tokens';
 import { TrackerKey } from '../../types';
 
 // ─── Greeting helpers ────────────────────────────────────────────────────────
@@ -154,16 +154,19 @@ export function HomeScreen() {
                 label="Mindful"
                 count={streaks.mindful_streak}
                 accentColor={colors.sage}
+                textColor={trackerTextColors.mood}
               />
               <StreakCard
                 label="Journal"
                 count={streaks.journal_streak}
                 accentColor={colors.energyGold}
+                textColor={trackerTextColors.energy}
               />
               <StreakCard
                 label="Gratitude"
                 count={streaks.gratitude_streak}
                 accentColor={colors.amber}
+                textColor={trackerTextColors.drinks}
               />
             </View>
           </View>
@@ -445,8 +448,7 @@ const styles = StyleSheet.create({
   gratitudeProgressHint: {
     fontFamily: typography.body,
     fontSize: 11,
-    color: colors.amber,
-    opacity: 0.8,
+    color: trackerTextColors.drinks,
     marginTop: spacing.xs,
   },
 });

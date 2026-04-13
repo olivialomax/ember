@@ -6,12 +6,13 @@ interface StreakCardProps {
   label: string;
   count: number;
   accentColor: string;
+  textColor?: string;
 }
 
-export function StreakCard({ label, count, accentColor }: StreakCardProps) {
+export function StreakCard({ label, count, accentColor, textColor }: StreakCardProps) {
   return (
     <View style={[styles.card, { borderTopColor: accentColor }]}>
-      <Text style={[styles.count, { color: accentColor }]}>{count}</Text>
+      <Text style={[styles.count, { color: textColor ?? accentColor }]}>{count}</Text>
       <Text style={styles.unit}>day{count !== 1 ? 's' : ''}</Text>
       <Text style={styles.label}>{label}</Text>
     </View>

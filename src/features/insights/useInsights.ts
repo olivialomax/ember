@@ -4,13 +4,14 @@ import { useAuthStore } from '../auth/useAuthStore';
 import { getRecentEntries } from '../../services/entries';
 import { getRecentGratitudeItems } from '../../services/gratitude';
 import { Entry, GratitudeItem, TrackerKey } from '../../types';
-import { colors } from '../../tokens';
+import { colors, trackerTextColors } from '../../tokens';
 
 export interface CorrelationInsight {
   id: string;
   title: string;
   body: string;
   accent: string;
+  accentText?: string;
   visible: boolean;
   comparison?: {
     valueA: string;
@@ -121,6 +122,7 @@ function computeInsights(entries: Entry[], gratitudeItems: GratitudeItem[]): Ins
     title: 'Movement & Mood',
     body: movMoodBody,
     accent: colors.blueCalm,
+    accentText: trackerTextColors.movement,
     visible: withMov.length >= 3 && noMov.length >= 3,
     comparison: movMoodAvg !== null && noMovMoodAvg !== null
       ? { valueA: movMoodAvg.toFixed(1), labelA: 'active days', valueB: noMovMoodAvg.toFixed(1), labelB: 'rest days' }
@@ -144,6 +146,7 @@ function computeInsights(entries: Entry[], gratitudeItems: GratitudeItem[]): Ins
     title: 'Stress & Drinks',
     body: stressDrinksBody,
     accent: colors.stressRed,
+    accentText: trackerTextColors.stress,
     visible: hiStress.length >= 3 && loStress.length >= 3,
     comparison: hiDrinks !== null && loDrinks !== null
       ? { valueA: hiDrinks.toFixed(1), labelA: 'high-stress', valueB: loDrinks.toFixed(1), labelB: 'calm days' }
@@ -176,6 +179,7 @@ function computeInsights(entries: Entry[], gratitudeItems: GratitudeItem[]): Ins
     title: 'Week on Week',
     body: wowBody,
     accent: colors.sage,
+    accentText: trackerTextColors.mood,
     visible: thisWeek.length >= 2 && lastWeek.length >= 2,
     comparison: thisWeekMood !== null && lastWeekMood !== null
       ? { valueA: thisWeekMood.toFixed(1), labelA: 'this week', valueB: lastWeekMood.toFixed(1), labelB: 'last week' }
@@ -204,6 +208,7 @@ function computeInsights(entries: Entry[], gratitudeItems: GratitudeItem[]): Ins
     title: 'Your Best Days',
     body: bestDay >= 0 ? `Your ${DAYS[bestDay]}s tend to be your brightest days.` : '',
     accent: colors.energyGold,
+    accentText: trackerTextColors.energy,
     visible: bestDay >= 0,
     comparison: bestDay >= 0
       ? { valueA: bestDayAvg.toFixed(1), labelA: DAYS[bestDay] + 's', valueB: overallMoodAvg.toFixed(1), labelB: 'your average' }
@@ -231,6 +236,7 @@ function computeInsights(entries: Entry[], gratitudeItems: GratitudeItem[]): Ins
     title: 'Gratitude & Mood',
     body: gratBody,
     accent: colors.sage,
+    accentText: trackerTextColors.mood,
     visible: withGrat.length >= 3 && noGrat.length >= 3,
     comparison: gratMoodAvg !== null && noGratMoodAvg !== null
       ? { valueA: gratMoodAvg.toFixed(1), labelA: 'gratitude days', valueB: noGratMoodAvg.toFixed(1), labelB: 'other days' }
@@ -254,6 +260,7 @@ function computeInsights(entries: Entry[], gratitudeItems: GratitudeItem[]): Ins
     title: 'Stress & Movement',
     body: stressMovBody,
     accent: colors.stressRed,
+    accentText: trackerTextColors.stress,
     visible: movStress.length >= 3 && noMovStress.length >= 3,
     comparison: movStressAvg !== null && noMovStressAvg !== null
       ? { valueA: movStressAvg.toFixed(1), labelA: 'active days', valueB: noMovStressAvg.toFixed(1), labelB: 'rest days' }
@@ -285,6 +292,7 @@ function computeInsights(entries: Entry[], gratitudeItems: GratitudeItem[]): Ins
     title: 'Your Energy Peak',
     body: bestEnergyDay >= 0 ? `Your ${DAYS[bestEnergyDay]}s tend to be when your energy peaks.` : '',
     accent: colors.energyGold,
+    accentText: trackerTextColors.energy,
     visible: bestEnergyDay >= 0,
     comparison: bestEnergyDay >= 0
       ? { valueA: bestEnergyAvg.toFixed(1), labelA: DAYS[bestEnergyDay] + 's', valueB: overallEnergyAvg.toFixed(1), labelB: 'your average' }
@@ -317,6 +325,7 @@ function computeInsights(entries: Entry[], gratitudeItems: GratitudeItem[]): Ins
     title: 'Drinks & Next-Day Energy',
     body: drinksEnergyBody,
     accent: colors.amber,
+    accentText: trackerTextColors.drinks,
     visible: highDrinkNextEnergy.length >= 3 && lowDrinkNextEnergy.length >= 3,
     comparison: highDrinkEnergyAvg !== null && lowDrinkEnergyAvg !== null
       ? { valueA: lowDrinkEnergyAvg.toFixed(1), labelA: 'lighter nights', valueB: highDrinkEnergyAvg.toFixed(1), labelB: 'heavier nights' }
@@ -348,6 +357,7 @@ function computeInsights(entries: Entry[], gratitudeItems: GratitudeItem[]): Ins
     title: 'Sleep & Mood',
     body: sleepMoodBody,
     accent: colors.blueCalm,
+    accentText: trackerTextColors.movement,
     visible:
       (poorSleepDays.length >= 3 || greatSleepDays.length >= 3) &&
       poorSleepMood !== null &&
@@ -386,6 +396,7 @@ function computeInsights(entries: Entry[], gratitudeItems: GratitudeItem[]): Ins
     title: 'Social Time & Mood',
     body: socialMoodBody,
     accent: colors.sage,
+    accentText: trackerTextColors.mood,
     visible: connectedDays.length >= 3 && otherDays.length >= 3,
     comparison:
       connectedMood !== null && otherMood !== null
@@ -417,6 +428,7 @@ function computeInsights(entries: Entry[], gratitudeItems: GratitudeItem[]): Ins
     title: 'Stressful Events & Energy',
     body: stressEventBody,
     accent: colors.stressRed,
+    accentText: trackerTextColors.stress,
     visible: stressEventDays.length >= 3 && calmDays.length >= 3,
     comparison:
       stressEventEnergy !== null && calmEnergy !== null
